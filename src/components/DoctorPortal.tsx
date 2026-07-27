@@ -64,7 +64,8 @@ import {
   Moon,
   AlertCircle,
   Apple,
-  Dumbbell
+  Dumbbell,
+  Edit3
 } from 'lucide-react';
 
 interface DoctorPortalProps {

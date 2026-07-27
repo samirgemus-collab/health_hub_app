@@ -16,6 +16,7 @@ import { PatientJornadaTimeline } from './components/PatientJornadaTimeline';
 import { PopulationHealthCoordinator } from './components/PopulationHealthCoordinator';
 import { ClinicalAiGovernanceEngine } from './components/ClinicalAiGovernanceEngine';
 import { HomePage } from './components/HomePage';
+import { SegSaudeAuthModal } from './components/SegSaudeAuthModal';
 
 import { 
   mockProfiles, 
@@ -75,6 +76,8 @@ export function App() {
     communications: true,
     hasScrolledToEnd: false
   });
+
+  const [isSegSaudeAuthOpen, setIsSegSaudeAuthOpen] = useState(false);
 
   // Dynamic user data states
   const [conditionsMap, setConditionsMap] = useState(mockChronicConditions);
@@ -322,6 +325,7 @@ export function App() {
         onToggleUserRole={setUserRole}
         currentDoctor={mockDoctors[0]}
         currentTeamMember={mockTeamMembers[0]}
+        onOpenSegSaudeAuth={() => setIsSegSaudeAuthOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -499,6 +503,16 @@ export function App() {
         )}
 
       </main>
+
+      {/* SEG Saúde Auth Modal */}
+      <SegSaudeAuthModal
+        isOpen={isSegSaudeAuthOpen}
+        onClose={() => setIsSegSaudeAuthOpen(false)}
+        onLoginSuccess={(role) => {
+          setUserRole(role);
+          setIsSegSaudeAuthOpen(false);
+        }}
+      />
 
       {/* Footer */}
       <footer className="glass-panel border-t border-slate-900 py-6 mt-12 text-center text-xs text-slate-500">

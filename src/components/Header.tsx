@@ -33,6 +33,7 @@ interface HeaderProps {
   onToggleUserRole: (role: UserRole) => void;
   currentDoctor: DoctorProfile;
   currentTeamMember: TeamMemberProfile;
+  onOpenSegSaudeAuth?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -46,6 +47,7 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleBiometric,
   userRole,
   onToggleUserRole,
+  onOpenSegSaudeAuth,
 }) => {
   return (
     <header className="sticky top-0 z-40 glass-panel border-b border-slate-900 shadow-xl backdrop-blur-xl bg-slate-950/80">
@@ -66,7 +68,7 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             </div>
             <p className="text-[10px] text-slate-400 font-medium hidden sm:block">
-              HUB de Saúde Individual & Prontuário Multidisciplinar
+              SEG Saúde • Governança, Biometria & ICP-Brasil
             </p>
           </div>
         </div>
@@ -106,7 +108,7 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             <Users className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Equipe de Saúde</span>
+            <span className="hidden sm:inline">Equipe</span>
           </button>
 
           <button
@@ -118,16 +120,21 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             <ShieldCheck className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Administrador</span>
+            <span className="hidden sm:inline">Admin</span>
           </button>
         </div>
 
-        {/* Right side: Security Indicators */}
-        <div className="flex items-center space-x-3">
-          <div className="hidden lg:flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-[11px]">
-            <Lock className="w-3.5 h-3.5 text-teal-400" />
-            <span className="font-semibold text-slate-300">E2EE AES-256</span>
-          </div>
+        {/* Right side: Security Indicators & SEG SAÚDE AUTH BUTTON */}
+        <div className="flex items-center space-x-2">
+          {onOpenSegSaudeAuth && (
+            <button
+              onClick={onOpenSegSaudeAuth}
+              className="py-2 px-3.5 rounded-xl bg-gradient-to-r from-cyan-500 via-teal-400 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-slate-950 font-black text-xs flex items-center space-x-1.5 shadow-lg shadow-cyan-500/20 transition-all cursor-pointer"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              <span>SEG Saúde Auth</span>
+            </button>
+          )}
 
           <button
             onClick={onToggleBiometric}
