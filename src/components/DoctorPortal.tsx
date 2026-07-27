@@ -56,7 +56,10 @@ import {
   Eye,
   MessageCircle,
   ExternalLink,
-  ClipboardList
+  ClipboardList,
+  BookOpen,
+  CheckSquare,
+  Award
 } from 'lucide-react';
 
 interface DoctorPortalProps {
@@ -110,7 +113,7 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
   const availableProtocols = (chronicProtocols && chronicProtocols.length > 0) ? chronicProtocols : [defaultProtocol];
   
   const [selectedPatientId, setSelectedPatientId] = useState<string>(patients[0]?.id || 'user_maria_01');
-  const [activeDoctorTab, setActiveDoctorTab] = useState<'protocols' | 'emr' | 'prescriptions' | 'dictation' | 'refills'>('protocols');
+  const [activeDoctorTab, setActiveDoctorTab] = useState<'guidelines' | 'protocols' | 'emr' | 'prescriptions' | 'dictation' | 'refills'>('guidelines');
   
   // VOICE DICTATION & AI SOAP STRUCTURING STATE
   const [isRecordingDictation, setIsRecordingDictation] = useState(false);
@@ -257,7 +260,7 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
           <div>
             <div className="flex items-center space-x-2 text-indigo-400 text-xs font-bold uppercase tracking-wider mb-0.5">
               <Stethoscope className="w-4 h-4" />
-              <span>Portal do Médico • Prontuário Multidisciplinar & Protocolos</span>
+              <span>Portal do Médico • Suporte à Decisão Clínica baseada em Consensos</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white">{doctor.name}</h1>
             <p className="text-xs sm:text-sm text-slate-300 mt-0.5">
@@ -289,6 +292,16 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
       {/* DOCTOR PORTAL TABS HEADER */}
       <div className="flex space-x-1 p-1 bg-slate-900 rounded-2xl border border-slate-800 text-xs overflow-x-auto">
         <button
+          onClick={() => setActiveDoctorTab('guidelines')}
+          className={`px-4 py-2.5 rounded-xl font-bold transition-all flex items-center space-x-2 whitespace-nowrap ${
+            activeDoctorTab === 'guidelines' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <BookOpen className="w-4 h-4 text-indigo-300" />
+          <span>📖 Consensos Clínicos por Doença</span>
+        </button>
+
+        <button
           onClick={() => setActiveDoctorTab('protocols')}
           className={`px-4 py-2.5 rounded-xl font-bold transition-all flex items-center space-x-2 whitespace-nowrap ${
             activeDoctorTab === 'protocols' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:text-white'
@@ -315,7 +328,7 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
           }`}
         >
           <FileSignature className="w-4 h-4 text-indigo-300" />
-          <span>📄 Receita Eletrônica & Canvas ICP-Brasil</span>
+          <span>📄 Receita Eletrônica ICP-Brasil</span>
         </button>
 
         <button
@@ -327,20 +340,156 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
           <Mic className="w-4 h-4 text-indigo-300" />
           <span>🎙️ Ditado Médico & SOAP</span>
         </button>
-
-        <button
-          onClick={() => setActiveDoctorTab('refills')}
-          className={`px-4 py-2.5 rounded-xl font-bold transition-all flex items-center space-x-2 whitespace-nowrap ${
-            activeDoctorTab === 'refills' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:text-white'
-          }`}
-        >
-          <ShoppingBag className="w-4 h-4 text-indigo-300" />
-          <span>💊 Renovações de Receita ({refillRequests.filter(r => r.status === 'pending').length})</span>
-        </button>
       </div>
 
       {/* ========================================================================= */}
-      {/* 1. TAB: PROTOCOLOS CLÍNICOS                                               */}
+      {/* 1. TAB: CONSENSOS CLÍNICOS OFICIAIS POR DOENÇA CRÔNICA                    */}
+      {/* ========================================================================= */}
+      {activeDoctorTab === 'guidelines' && (
+        <div className="space-y-6">
+          <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-slate-800 space-y-6">
+            <div>
+              <div className="flex items-center space-x-2 text-indigo-400 font-extrabold text-xs uppercase tracking-wider mb-1">
+                <Award className="w-4 h-4" />
+                <span>Diretrizes Oficiais das Sociedades Médicas (SBC, SBD, KDIGO, IOF, AHA)</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-black text-white">
+                Principais Recomendações dos Consensos Médicos por Patologia Crônica
+              </h2>
+              <p className="text-xs text-slate-300 mt-1">
+                Guias práticos de conduta terapêutica e metas clínicas para auxílio à tomada de decisão médica durante a consulta.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+              
+              {/* CONSENSO 1: HIPERTENSÃO ARTERIAL (SBC / DHA) */}
+              <div className="glass-card rounded-3xl p-6 border border-slate-800 space-y-3 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/20">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <div className="flex items-center space-x-2">
+                    <Heart className="w-5 h-5 text-rose-400" />
+                    <h3 className="font-extrabold text-white text-base">Hipertensão Arterial (HAS)</h3>
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                    CID-10 I10
+                  </span>
+                </div>
+
+                <p className="text-slate-400 font-bold">Consenso Oficial: <span className="text-indigo-300">Diretrizes Brasileiras de Hipertensão (SBC/DHA)</span></p>
+
+                <ul className="space-y-2 text-slate-200 leading-relaxed">
+                  <li className="flex items-start gap-2">
+                    <CheckSquare className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <span><strong className="text-white">Meta Posológica de PA:</strong> Manter PA &lt; 130/80 mmHg para alto risco cardiovascular / DRC; e &lt; 140/90 mmHg para população geral.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckSquare className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <span><strong className="text-white">Terapia Tripla / Dupla:</strong> Associação em dose fixa de iECA/BRA + Anlodipino ou Tiazídico como conduta de 1ª linha.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckSquare className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <span><strong className="text-white">Telemetria de PA (MRPA):</strong> Recomendada medição residencial contínua no app para diagnóstico de Hipertensão do Avental Branco.</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* CONSENSO 2: DIABETES MELLITUS TIPO 2 (SBD / ADA) */}
+              <div className="glass-card rounded-3xl p-6 border border-slate-800 space-y-3 bg-gradient-to-br from-slate-950 via-slate-900 to-teal-950/20">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <div className="flex items-center space-x-2">
+                    <Activity className="w-5 h-5 text-teal-400" />
+                    <h3 className="font-extrabold text-white text-base">Diabetes Mellitus Tipo 2 (DM2)</h3>
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-teal-500/20 text-teal-300 border border-teal-500/30">
+                    CID-10 E11
+                  </span>
+                </div>
+
+                <p className="text-slate-400 font-bold">Consenso Oficial: <span className="text-teal-300">Diretrizes da SBD & ADA Standards of Care 2024</span></p>
+
+                <ul className="space-y-2 text-slate-200 leading-relaxed">
+                  <li className="flex items-start gap-2">
+                    <CheckSquare className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <span><strong className="text-white">Meta de HbA1c:</strong> HbA1c &lt; 7,0% para a maioria dos adultos (meta individualizada de &lt; 6,5% em jovens sem hipoglicemia).</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckSquare className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <span><strong className="text-white">Proteção Cardiorrenal Primária:</strong> Iniciar <strong className="text-teal-300">iSGLT2 (Dapaglifozina)</strong> ou <strong className="text-teal-300">aGLP-1 (Semaglutida)</strong> em pacientes com DRC (TFG &lt; 60) ou doença cardiovascular.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckSquare className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <span><strong className="text-white">Rastreamento de Microvascular:</strong> Relação Albuminúria/Creatinúria (RAC) anual, Fundo de Olho e Teste de Monofilamento dos pés.</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* CONSENSO 3: DOENÇA RENAL CRÔNICA (KDIGO) */}
+              <div className="glass-card rounded-3xl p-6 border border-slate-800 space-y-3 bg-gradient-to-br from-slate-950 via-slate-900 to-cyan-950/20">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <div className="flex items-center space-x-2">
+                    <ShieldCheck className="w-5 h-5 text-cyan-400" />
+                    <h3 className="font-extrabold text-white text-base">Doença Renal Crônica (DRC)</h3>
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                    CID-10 N18
+                  </span>
+                </div>
+
+                <p className="text-slate-400 font-bold">Consenso Oficial: <span className="text-cyan-300">Diretrizes KDIGO 2023 Clinical Practice</span></p>
+
+                <ul className="space-y-2 text-slate-200 leading-relaxed">
+                  <li className="flex items-start gap-2">
+                    <CheckSquare className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <span><strong className="text-white">Estadiamento Duplo:</strong> Matriz TFG estimada (CKD-EPI) + Albuminúria em amostra isolada (A1 &lt;30, A2 30-300, A3 &gt;300 mg/g).</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckSquare className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <span><strong className="text-white">Nefroproteção com iECA/BRA:</strong> Bloqueio do SRAA em dose máxima tolerada para retardar progressão dialítica.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckSquare className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <span><strong className="text-white">Contraindicação Estrita:</strong> Suspensão imediata de Anti-inflamatórios Não Esteroidais (AINEs) e contraste iodado sem hidratação.</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* CONSENSO 4: OSTEOPOROSE & FRATURAS (IOF / SBEM) */}
+              <div className="glass-card rounded-3xl p-6 border border-slate-800 space-y-3 bg-gradient-to-br from-slate-950 via-slate-900 to-amber-950/20">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <div className="flex items-center space-x-2">
+                    <TrendingUp className="w-5 h-5 text-amber-400" />
+                    <h3 className="font-extrabold text-white text-base">Osteoporose & Risco de Fratura</h3>
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                    CID-10 M81
+                  </span>
+                </div>
+
+                <p className="text-slate-400 font-bold">Consenso Oficial: <span className="text-amber-300">IOF (International Osteoporosis Foundation) & SBEM</span></p>
+
+                <ul className="space-y-2 text-slate-200 leading-relaxed">
+                  <li className="flex items-start gap-2">
+                    <CheckSquare className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <span><strong className="text-white">Diagnóstico Densito-métrico:</strong> Densitometria Óssea (DXA) com T-Score ≤ -2,5 DP em Coluna ou Fêmur.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckSquare className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <span><strong className="text-white">Calculadora FRAX:</strong> Iniciar tratamento farmacológico (Alendronato/Zoledronato) se Risco de Fratura de Quadril em 10 anos ≥ 3%.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckSquare className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <span><strong className="text-white">Suplementação Base:</strong> Cálcio 1.000-1.200mg/dia + Vitamina D3 mantendo nível sérico &gt; 30 ng/mL.</span>
+                  </li>
+                </ul>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 2. TAB: PROTOCOLOS CLÍNICOS PRE-CONFIGURADOS                              */}
       {/* ========================================================================= */}
       {activeDoctorTab === 'protocols' && (
         <div className="space-y-4">
@@ -384,7 +533,7 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
                         setShowToast(true);
                         setTimeout(() => {
                           setShowToast(false);
-                          setActiveDoctorTab('emr'); // AUTO SWITCH TO EMR TIMELINE VIEW!
+                          setActiveDoctorTab('emr');
                         }, 1200);
                       }
                     }}
@@ -401,7 +550,7 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
       )}
 
       {/* ========================================================================= */}
-      {/* 2. TAB: PRONTUÁRIO MÉDICO COMPLETO & LINHA DO TEMPO FHIR (EMR VIEWER)     */}
+      {/* 3. TAB: PRONTUÁRIO MÉDICO COMPLETO & LINHA DO TEMPO FHIR (EMR VIEWER)     */}
       {/* ========================================================================= */}
       {activeDoctorTab === 'emr' && (
         <div className="space-y-6">
@@ -421,7 +570,6 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
               </span>
             </div>
 
-            {/* PROTOCOLS PRESCRIBED IN EMR SUMMARY */}
             <div className="space-y-3">
               <h4 className="text-xs font-extrabold text-indigo-300 uppercase tracking-wider">
                 Protocolos Clínicos Ativos no Prontuário ({prescribedProtocols.length}):
@@ -441,7 +589,6 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
               </div>
             </div>
 
-            {/* EMR TIMELINE EVENTS LIST */}
             <div className="space-y-3 pt-4 border-t border-slate-800">
               <h4 className="text-xs font-extrabold text-cyan-300 uppercase tracking-wider">
                 Eventos Clínicos Registrados na Linha do Tempo ({timelineEvents.length}):
@@ -469,11 +616,10 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
       )}
 
       {/* ========================================================================= */}
-      {/* 3. TAB: PRESCRIÇÃO ELETRÔNICA & VISUALIZADOR OFICIAL DA RECEITA (CANVAS)  */}
+      {/* 4. TAB: PRESCRIÇÃO ELETRÔNICA & VISUALIZADOR OFICIAL DA RECEITA (CANVAS)  */}
       {/* ========================================================================= */}
       {activeDoctorTab === 'prescriptions' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          
           <div className="lg:col-span-5 glass-panel rounded-3xl p-6 border border-slate-800 space-y-4">
             <h3 className="text-base font-extrabold text-white flex items-center gap-2">
               <FileSignature className="w-5 h-5 text-indigo-400" />
@@ -501,26 +647,7 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
                   required
                   placeholder="ex: Enalapril 10mg"
                   value={medName}
-                  onChange={(e) => {
-                    setMedName(e.target.value);
-                    if (previewPrescription) {
-                      setPreviewPrescription({
-                        ...previewPrescription,
-                        medications: [{ ...previewPrescription.medications[0], name: e.target.value }]
-                      });
-                    }
-                  }}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-300 font-bold mb-1">Dosagem (mg/mL)</label>
-                <input
-                  type="text"
-                  placeholder="ex: 10mg"
-                  value={medDosage}
-                  onChange={(e) => setMedDosage(e.target.value)}
+                  onChange={(e) => setMedName(e.target.value)}
                   className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500"
                 />
               </div>
@@ -532,24 +659,16 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
                   required
                   placeholder="ex: Tomar 1 comprimido via oral pela manhã em jejum."
                   value={medInstructions}
-                  onChange={(e) => {
-                    setMedInstructions(e.target.value);
-                    if (previewPrescription) {
-                      setPreviewPrescription({
-                        ...previewPrescription,
-                        medications: [{ ...previewPrescription.medications[0], instructions: e.target.value }]
-                      });
-                    }
-                  }}
+                  onChange={(e) => setMedInstructions(e.target.value)}
                   className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-500 to-teal-500 hover:from-indigo-400 hover:to-teal-400 text-white font-extrabold text-xs flex items-center justify-center space-x-2 shadow-lg shadow-indigo-500/20 cursor-pointer"
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-500 to-teal-500 text-white font-extrabold text-xs cursor-pointer"
               >
-                <FileSignature className="w-4 h-4" />
+                <FileSignature className="w-4 h-4 inline mr-1" />
                 <span>Assinar Digitalmente (Certificado ICP-Brasil)</span>
               </button>
             </form>
@@ -565,31 +684,30 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
               <div className="flex items-center space-x-2">
                 <button
                   onClick={handleSendRxWhatsApp}
-                  className="py-1.5 px-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs flex items-center space-x-1 cursor-pointer"
+                  className="py-1.5 px-3 rounded-lg bg-emerald-500 text-slate-950 font-black text-xs cursor-pointer"
                 >
-                  <MessageCircle className="w-3.5 h-3.5" />
+                  <MessageCircle className="w-3.5 h-3.5 inline mr-1" />
                   <span>WhatsApp Direct</span>
                 </button>
-
                 <button
                   onClick={() => window.print()}
-                  className="py-1.5 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs flex items-center space-x-1 cursor-pointer"
+                  className="py-1.5 px-3 rounded-lg bg-slate-800 text-white font-bold text-xs cursor-pointer"
                 >
-                  <Printer className="w-3.5 h-3.5" />
+                  <Printer className="w-3.5 h-3.5 inline mr-1" />
                   <span>Imprimir (PDF)</span>
                 </button>
               </div>
             </div>
 
             {previewPrescription && (
-              <div className="bg-white text-slate-900 rounded-2xl p-6 sm:p-8 space-y-6 shadow-2xl border border-slate-300 font-serif leading-relaxed">
+              <div className="bg-white text-slate-900 rounded-2xl p-6 space-y-6 shadow-2xl border border-slate-300 font-serif leading-relaxed">
                 <div className="border-b-2 border-slate-800 pb-4 flex justify-between items-start">
                   <div>
-                    <h2 className="text-xl font-extrabold text-slate-900 uppercase tracking-wide font-sans">
+                    <h2 className="text-xl font-extrabold text-slate-900 uppercase font-sans">
                       {doctor.hospitalAffiliation || 'HealthHub Medicina Preventiva'}
                     </h2>
-                    <p className="text-sm font-bold text-indigo-900 mt-0.5 font-sans">{doctor.name}</p>
-                    <p className="text-xs text-slate-600 font-sans">{doctor.specialty} • <strong className="text-slate-900">{doctor.crm}</strong></p>
+                    <p className="text-sm font-bold text-indigo-900 font-sans">{doctor.name}</p>
+                    <p className="text-xs text-slate-600 font-sans">{doctor.specialty} • <strong>{doctor.crm}</strong></p>
                   </div>
                   <div className="text-right font-sans text-xs text-slate-500">
                     <p className="font-bold text-slate-800">RECEITUÁRIO MÉDICO</p>
@@ -597,40 +715,28 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
                   </div>
                 </div>
 
-                <div className="p-3 bg-slate-100 rounded-xl border border-slate-300 text-xs font-sans space-y-1">
-                  <p><strong className="text-slate-900 uppercase">Paciente:</strong> {selectedPatient.name}</p>
-                  <p><strong className="text-slate-900">CPF:</strong> {selectedPatient.cpfMasked} • <strong className="text-slate-900">Idade:</strong> {selectedPatient.age} anos</p>
+                <div className="p-3 bg-slate-100 rounded-xl text-xs font-sans space-y-1">
+                  <p><strong className="uppercase">Paciente:</strong> {selectedPatient.name}</p>
+                  <p><strong>CPF:</strong> {selectedPatient.cpfMasked} • <strong>Idade:</strong> {selectedPatient.age} anos</p>
                 </div>
 
-                <div className="space-y-4 py-2 font-sans">
+                <div className="space-y-3 font-sans">
                   <span className="text-lg font-black text-indigo-950 font-serif block">Rx / Uso Medicamentoso:</span>
                   {previewPrescription.medications.map((m, idx) => (
-                    <div key={idx} className="space-y-1 pl-4 border-l-4 border-indigo-600">
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-base font-extrabold text-slate-900">{m.name}</h4>
-                        {m.continuousUse && (
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-900 border border-indigo-300 uppercase">
-                            Uso Contínuo
-                          </span>
-                        )}
-                      </div>
+                    <div key={idx} className="pl-4 border-l-4 border-indigo-600 space-y-1">
+                      <h4 className="text-base font-extrabold text-slate-900">{m.name}</h4>
                       <p className="text-xs text-slate-700 font-semibold">{m.instructions}</p>
                     </div>
                   ))}
                 </div>
 
                 <div className="pt-6 border-t-2 border-slate-800 flex items-end justify-between font-sans text-xs">
-                  <div className="space-y-1 max-w-xs">
-                    <div className="flex items-center space-x-1 text-emerald-700 font-bold text-[11px]">
-                      <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>Documento Assinado Digitalmente via ICP-Brasil</span>
-                    </div>
-                    <p className="text-[10px] text-slate-500 font-mono break-all">Hash: {previewPrescription.signatureHash}</p>
+                  <div className="space-y-1">
+                    <span className="text-emerald-700 font-bold text-[11px] block">Documento Assinado Digitalmente via ICP-Brasil</span>
+                    <p className="text-[10px] text-slate-500 font-mono">Hash: {previewPrescription.signatureHash}</p>
                   </div>
-                  <div className="p-2 bg-slate-50 border border-slate-300 rounded-xl text-center space-y-1 shrink-0">
-                    <div className="w-16 h-16 bg-slate-900 text-white rounded-lg flex items-center justify-center font-mono text-[9px] mx-auto">
-                      <QrCode className="w-12 h-12 text-white" />
-                    </div>
+                  <div className="p-2 bg-slate-50 border border-slate-300 rounded-xl text-center shrink-0">
+                    <QrCode className="w-10 h-10 text-slate-900 mx-auto" />
                     <span className="text-[9px] text-slate-600 font-bold block">Validar no ITI</span>
                   </div>
                 </div>
@@ -641,11 +747,11 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
       )}
 
       {/* ========================================================================= */}
-      {/* 4. TAB: DITADO MÉDICO POR VOZ & ESTRUTURAÇÃO DE CONSULTA (SOAP)           */}
+      {/* 5. TAB: DITADO MÉDICO POR VOZ & ESTRUTURAÇÃO DE CONSULTA (SOAP)           */}
       {/* ========================================================================= */}
       {activeDoctorTab === 'dictation' && (
         <div className="space-y-6">
-          <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-slate-800 space-y-5 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/20">
+          <div className="glass-panel rounded-3xl p-6 border border-slate-800 space-y-5">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div>
                 <h3 className="text-base font-extrabold text-white flex items-center gap-2">
@@ -660,13 +766,11 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
               <button
                 onClick={handleToggleVoiceDictation}
                 className={`py-3 px-5 rounded-2xl font-black text-xs flex items-center space-x-2 transition-all cursor-pointer ${
-                  isRecordingDictation 
-                    ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/30 animate-pulse' 
-                    : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20'
+                  isRecordingDictation ? 'bg-rose-600 text-white animate-pulse' : 'bg-indigo-600 text-white'
                 }`}
               >
                 {isRecordingDictation ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-                <span>{isRecordingDictation ? '🔴 Gravando Ditado (Fale Agora)...' : '🎙️ Iniciar Ditado por Voz'}</span>
+                <span>{isRecordingDictation ? '🔴 Gravando Ditado...' : '🎙️ Iniciar Ditado por Voz'}</span>
               </button>
             </div>
 
@@ -676,33 +780,28 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
                 rows={4}
                 value={dictationRawText}
                 onChange={(e) => setDictationRawText(e.target.value)}
-                className="w-full p-4 bg-slate-900 rounded-2xl border border-slate-800 text-white text-xs font-sans focus:outline-none focus:border-indigo-500 leading-relaxed"
-                placeholder="Fale ou digite as observações da consulta..."
+                className="w-full p-4 bg-slate-900 rounded-2xl border border-slate-800 text-white text-xs font-sans focus:outline-none focus:border-indigo-500"
               />
 
               <div className="flex justify-end">
                 <button
                   onClick={handleStructureConsultationSoap}
                   disabled={isStructuringSoap || !dictationRawText}
-                  className="py-3 px-6 rounded-xl bg-gradient-to-r from-indigo-500 to-teal-500 hover:from-indigo-400 hover:to-teal-400 text-white font-extrabold text-xs flex items-center space-x-2 shadow-lg shadow-indigo-500/20 cursor-pointer disabled:opacity-50"
+                  className="py-3 px-6 rounded-xl bg-gradient-to-r from-indigo-500 to-teal-500 text-white font-extrabold text-xs cursor-pointer"
                 >
-                  <Sparkles className={`w-4 h-4 ${isStructuringSoap ? 'animate-spin' : ''}`} />
+                  <Sparkles className="w-4 h-4 inline mr-1" />
                   <span>{isStructuringSoap ? 'Estruturando nota SOAP...' : '✨ Estruturar Consulta com IA Gemini'}</span>
                 </button>
               </div>
             </div>
 
             {structuredSoapNote && (
-              <div className="space-y-4 pt-4 border-t border-slate-800 animate-fadeIn">
+              <div className="space-y-4 pt-4 border-t border-slate-800">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-extrabold text-white flex items-center gap-2">
-                    <Brain className="w-4 h-4 text-teal-400" />
-                    Nota Clínica Estruturada (Padrão SOAP) para {selectedPatient.name}
-                  </h4>
-
+                  <h4 className="text-sm font-extrabold text-white">Nota Clínica Estruturada (Padrão SOAP) para {selectedPatient.name}</h4>
                   <button
                     onClick={handleSaveSoapToEmr}
-                    className="py-2 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs flex items-center space-x-1.5 shadow-lg shadow-emerald-500/20 cursor-pointer"
+                    className="py-2 px-4 rounded-xl bg-emerald-500 text-slate-950 font-black text-xs flex items-center space-x-1 cursor-pointer"
                   >
                     <CheckCircle2 className="w-4 h-4" />
                     <span>💾 Gravar Nota SOAP no Prontuário FHIR</span>
@@ -712,65 +811,24 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                   <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-1">
                     <span className="font-extrabold text-indigo-400 block uppercase">Subjetivo (S):</span>
-                    <p className="text-slate-200 leading-relaxed">{structuredSoapNote.subjective}</p>
+                    <p className="text-slate-200">{structuredSoapNote.subjective}</p>
                   </div>
                   <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-1">
                     <span className="font-extrabold text-teal-400 block uppercase">Objetivo (O):</span>
-                    <p className="text-slate-200 leading-relaxed">{structuredSoapNote.objective}</p>
+                    <p className="text-slate-200">{structuredSoapNote.objective}</p>
                   </div>
                   <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-1">
-                    <span className="font-extrabold text-amber-400 block uppercase">Avaliação / Diagnóstico (A):</span>
-                    <p className="text-slate-200 leading-relaxed">{structuredSoapNote.assessment}</p>
+                    <span className="font-extrabold text-amber-400 block uppercase">Avaliação (A):</span>
+                    <p className="text-slate-200">{structuredSoapNote.assessment}</p>
                   </div>
                   <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-1">
-                    <span className="font-extrabold text-rose-400 block uppercase">Plano & Conduta (P):</span>
-                    <p className="text-slate-200 leading-relaxed">{structuredSoapNote.plan}</p>
+                    <span className="font-extrabold text-rose-400 block uppercase">Plano (P):</span>
+                    <p className="text-slate-200">{structuredSoapNote.plan}</p>
                   </div>
                 </div>
               </div>
             )}
           </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* 5. TAB: RENOVAÇÕES AUTOMÁTICAS DE RECEITA                                 */}
-      {/* ========================================================================= */}
-      {activeDoctorTab === 'refills' && (
-        <div className="glass-panel rounded-3xl p-6 border border-slate-800 space-y-4">
-          <h3 className="text-base font-extrabold text-white flex items-center gap-2">
-            <ShoppingBag className="w-5 h-5 text-amber-400" />
-            Solicitações Automáticas de Renovação de Receita por Estoque Baixo
-          </h3>
-
-          {refillRequests.length === 0 ? (
-            <p className="text-slate-400 text-xs italic">Nenhuma solicitação de renovação pendente no momento.</p>
-          ) : (
-            <div className="space-y-3">
-              {refillRequests.map((req) => (
-                <div key={req.id} className="glass-card rounded-2xl p-4 border border-amber-500/30 bg-amber-950/10 flex items-center justify-between gap-4 text-xs">
-                  <div>
-                    <h4 className="font-bold text-white text-sm">{req.medicationName} {req.dosage}</h4>
-                    <p className="text-slate-300">Paciente: <strong className="text-white">{req.patientName}</strong></p>
-                    <p className="text-amber-400 font-mono text-[11px]">Restam apenas {req.remainingDoses} comprimidos no estoque do paciente!</p>
-                  </div>
-
-                  <button
-                    onClick={() => {
-                      if (onFulfillRefillRequest) onFulfillRefillRequest(req.id);
-                      setToastMessage(`Receita renovada e assinada via ICP-Brasil para ${req.patientName}!`);
-                      setShowToast(true);
-                      setTimeout(() => setShowToast(false), 3000);
-                    }}
-                    className="py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs flex items-center space-x-1.5 shadow-lg shadow-amber-500/20 cursor-pointer shrink-0"
-                  >
-                    <FileSignature className="w-4 h-4" />
-                    <span>Renovar & Assinar Receita ICP-Brasil</span>
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       )}
 
