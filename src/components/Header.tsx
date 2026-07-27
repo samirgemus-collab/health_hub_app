@@ -17,7 +17,10 @@ import {
   Building2,
   Calculator,
   Clock,
-  Brain
+  Brain,
+  Home,
+  Sparkles,
+  Bot
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -50,9 +53,9 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenSegSaudeAuth,
 }) => {
   return (
-    <header className="sticky top-0 z-40 glass-panel border-b border-slate-900 shadow-xl backdrop-blur-xl bg-slate-950/80">
+    <header className="sticky top-0 z-40 glass-panel border-b border-slate-900 shadow-xl backdrop-blur-xl bg-slate-950/90">
       
-      {/* Top Bar: Brand, Security Badges & Role Switcher */}
+      {/* 1. TOP BRANDING BAR & SEG SAÚDE AUTH */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         
         {/* Brand Logo */}
@@ -62,69 +65,69 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
           <div>
             <div className="flex items-center space-x-1.5">
-              <span className="font-black text-lg tracking-tight text-white">HealthHub</span>
-              <span className="text-xs px-1.5 py-0.5 rounded-md bg-teal-500/20 text-teal-300 font-bold border border-teal-500/30">
-                AI
+              <span className="font-black text-lg tracking-tight text-white">HealthHub.AI</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-md bg-teal-500/20 text-teal-300 font-extrabold border border-teal-500/30">
+                SEG Saúde
               </span>
             </div>
             <p className="text-[10px] text-slate-400 font-medium hidden sm:block">
-              SEG Saúde • Governança, Biometria & ICP-Brasil
+              Governança Médica • IA Tríplice & Telemetria IoT
             </p>
           </div>
         </div>
 
-        {/* CENTER ROLE SWITCHER (Patient vs Doctor vs Team vs Admin) */}
-        <div className="flex items-center p-1 bg-slate-900 rounded-2xl border border-slate-800 text-xs">
+        {/* TOP LEVEL 4-PORTAL SELECTOR (PACIENTE | MÉDICO | EQUIPE & AGENTES | ADMIN) */}
+        <div className="hidden md:flex items-center p-1 bg-slate-900/90 rounded-2xl border border-slate-800 text-xs">
           <button
             onClick={() => onToggleUserRole('patient')}
-            className={`px-3 py-1.5 rounded-xl font-bold transition-all flex items-center space-x-1.5 ${
+            className={`px-3.5 py-1.5 rounded-xl font-extrabold transition-all flex items-center space-x-1.5 cursor-pointer ${
               userRole === 'patient' 
                 ? 'bg-teal-500 text-slate-950 shadow-md shadow-teal-500/20' 
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <User className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Paciente</span>
+            <User className="w-4 h-4" />
+            <span>1. Portal Paciente</span>
           </button>
 
           <button
             onClick={() => onToggleUserRole('doctor')}
-            className={`px-3 py-1.5 rounded-xl font-bold transition-all flex items-center space-x-1.5 ${
+            className={`px-3.5 py-1.5 rounded-xl font-extrabold transition-all flex items-center space-x-1.5 cursor-pointer ${
               userRole === 'doctor' 
                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20' 
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Stethoscope className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Médico</span>
+            <Stethoscope className="w-4 h-4" />
+            <span>2. Portal Médico</span>
           </button>
 
           <button
             onClick={() => onToggleUserRole('healthcare_team')}
-            className={`px-3 py-1.5 rounded-xl font-bold transition-all flex items-center space-x-1.5 ${
+            className={`px-3.5 py-1.5 rounded-xl font-extrabold transition-all flex items-center space-x-1.5 cursor-pointer ${
               userRole === 'healthcare_team' 
                 ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20' 
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Users className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Equipe</span>
+            <Users className="w-4 h-4" />
+            <span>3. Equipe & Agentes</span>
           </button>
 
           <button
             onClick={() => onToggleUserRole('admin')}
-            className={`px-3 py-1.5 rounded-xl font-bold transition-all flex items-center space-x-1.5 ${
+            className={`px-3.5 py-1.5 rounded-xl font-extrabold transition-all flex items-center space-x-1.5 cursor-pointer ${
               userRole === 'admin' 
                 ? 'bg-rose-600 text-white shadow-md shadow-rose-500/20' 
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Admin</span>
+            <ShieldCheck className="w-4 h-4" />
+            <span>4. Governança Admin</span>
           </button>
         </div>
 
-        {/* Right side: Security Indicators & SEG SAÚDE AUTH BUTTON */}
+        {/* RIGHT SECURITY & SEG SAÚDE AUTH BUTTON */}
         <div className="flex items-center space-x-2">
           {onOpenSegSaudeAuth && (
             <button
@@ -138,11 +141,12 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={onToggleBiometric}
-            className={`p-2 rounded-xl border text-xs font-medium transition-all flex items-center space-x-1.5 ${
+            className={`p-2 rounded-xl border text-xs font-medium transition-all flex items-center space-x-1.5 cursor-pointer ${
               biometricActive 
                 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
                 : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
             }`}
+            title="Autenticação Biométrica E2EE"
           >
             <Shield className="w-4 h-4" />
           </button>
@@ -150,129 +154,139 @@ export const Header: React.FC<HeaderProps> = ({
 
       </div>
 
-      {/* Patient Sub-Navigation Tabs */}
+      {/* MOBILE PORTAL SELECTOR */}
+      <div className="md:hidden flex items-center justify-around p-1.5 bg-slate-900 border-t border-slate-800 text-[11px]">
+        <button
+          onClick={() => onToggleUserRole('patient')}
+          className={`px-2 py-1 rounded-lg font-bold ${userRole === 'patient' ? 'bg-teal-500 text-slate-950' : 'text-slate-400'}`}
+        >
+          Paciente
+        </button>
+        <button
+          onClick={() => onToggleUserRole('doctor')}
+          className={`px-2 py-1 rounded-lg font-bold ${userRole === 'doctor' ? 'bg-indigo-600 text-white' : 'text-slate-400'}`}
+        >
+          Médico
+        </button>
+        <button
+          onClick={() => onToggleUserRole('healthcare_team')}
+          className={`px-2 py-1 rounded-lg font-bold ${userRole === 'healthcare_team' ? 'bg-cyan-500 text-slate-950' : 'text-slate-400'}`}
+        >
+          Equipe/ACS
+        </button>
+        <button
+          onClick={() => onToggleUserRole('admin')}
+          className={`px-2 py-1 rounded-lg font-bold ${userRole === 'admin' ? 'bg-rose-600 text-white' : 'text-slate-400'}`}
+        >
+          Admin
+        </button>
+      </div>
+
+      {/* 2. SUB-NAVIGATION TABS (ONLY VISIBLE IN PATIENT PORTAL ROLE) */}
       {userRole === 'patient' && (
-        <div className="border-t border-slate-900 bg-slate-950/60">
+        <div className="border-t border-slate-900 bg-slate-950/80">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center space-x-1 overflow-x-auto py-2 text-xs">
+            
             <button
               onClick={() => onTabChange('home')}
-              className={`px-3.5 py-2 rounded-xl font-semibold transition-all flex items-center space-x-2 whitespace-nowrap ${
-                activeTab === 'home' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-bold' : 'text-slate-400 hover:text-white'
+              className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center space-x-1.5 whitespace-nowrap cursor-pointer ${
+                activeTab === 'home' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'text-slate-400 hover:text-white'
               }`}
             >
-              <Activity className="w-4 h-4 text-cyan-400" />
-              <span>Início</span>
-            </button>
-
-            <button
-              onClick={() => onTabChange('dashboard')}
-              className={`px-3.5 py-2 rounded-xl font-semibold transition-all flex items-center space-x-2 whitespace-nowrap ${
-                activeTab === 'dashboard' ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30 font-bold' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <Activity className="w-4 h-4" />
-              <span>Painel Geral</span>
-            </button>
-
-            <button
-              onClick={() => onTabChange('history')}
-              className={`px-3.5 py-2 rounded-xl font-semibold transition-all flex items-center space-x-2 whitespace-nowrap ${
-                activeTab === 'history' ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30 font-bold' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <FileText className="w-4 h-4" />
-              <span>Histórico Médico</span>
-            </button>
-
-            <button
-              onClick={() => onTabChange('medications')}
-              className={`px-3.5 py-2 rounded-xl font-semibold transition-all flex items-center space-x-2 whitespace-nowrap ${
-                activeTab === 'medications' ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30 font-bold' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <Pill className="w-4 h-4" />
-              <span>Lembrete de Remédios</span>
-            </button>
-
-            <button
-              onClick={() => onTabChange('preventive')}
-              className={`px-3.5 py-2 rounded-xl font-semibold transition-all flex items-center space-x-2 whitespace-nowrap ${
-                activeTab === 'preventive' ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30 font-bold' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <Calendar className="w-4 h-4" />
-              <span>Preventivas (IA)</span>
-            </button>
-
-            <button
-              onClick={() => onTabChange('reports')}
-              className={`px-3.5 py-2 rounded-xl font-semibold transition-all flex items-center space-x-2 whitespace-nowrap ${
-                activeTab === 'reports' ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30 font-bold' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <FileText className="w-4 h-4" />
-              <span>Laudos & OCR</span>
-            </button>
-
-            <button
-              onClick={() => onTabChange('wearables')}
-              className={`px-3.5 py-2 rounded-xl font-semibold transition-all flex items-center space-x-2 whitespace-nowrap ${
-                activeTab === 'wearables' ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30 font-bold' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <Watch className="w-4 h-4" />
-              <span>Wearables</span>
+              <Home className="w-4 h-4 text-cyan-400" />
+              <span>Início Unificado</span>
             </button>
 
             <button
               onClick={() => onTabChange('jornada_timeline')}
-              className={`px-3.5 py-2 rounded-xl font-semibold transition-all flex items-center space-x-2 whitespace-nowrap ${
-                activeTab === 'jornada_timeline' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold' : 'text-slate-400 hover:text-white'
+              className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center space-x-1.5 whitespace-nowrap cursor-pointer ${
+                activeTab === 'jornada_timeline' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'text-slate-400 hover:text-white'
               }`}
             >
               <Clock className="w-4 h-4 text-indigo-400" />
-              <span>Jornada / Linha do Tempo</span>
+              <span>Linha do Tempo FHIR</span>
+            </button>
+
+            <button
+              onClick={() => onTabChange('dashboard')}
+              className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center space-x-1.5 whitespace-nowrap cursor-pointer ${
+                activeTab === 'dashboard' ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Activity className="w-4 h-4 text-teal-400" />
+              <span>Minha Saúde (Sinais Vitais)</span>
+            </button>
+
+            <button
+              onClick={() => onTabChange('medications')}
+              className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center space-x-1.5 whitespace-nowrap cursor-pointer ${
+                activeTab === 'medications' ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Pill className="w-4 h-4 text-teal-400" />
+              <span>Remédios & Estoque</span>
+            </button>
+
+            <button
+              onClick={() => onTabChange('preventive')}
+              className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center space-x-1.5 whitespace-nowrap cursor-pointer ${
+                activeTab === 'preventive' ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Calendar className="w-4 h-4 text-teal-400" />
+              <span>Agente Preventivo</span>
+            </button>
+
+            <button
+              onClick={() => onTabChange('wearables')}
+              className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center space-x-1.5 whitespace-nowrap cursor-pointer ${
+                activeTab === 'wearables' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Watch className="w-4 h-4 text-cyan-400" />
+              <span>Sensores BLE / IoT</span>
             </button>
 
             <button
               onClick={() => onTabChange('risk_calculators')}
-              className={`px-3.5 py-2 rounded-xl font-semibold transition-all flex items-center space-x-2 whitespace-nowrap ${
-                activeTab === 'risk_calculators' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold' : 'text-slate-400 hover:text-white'
+              className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center space-x-1.5 whitespace-nowrap cursor-pointer ${
+                activeTab === 'risk_calculators' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'text-slate-400 hover:text-white'
               }`}
             >
               <Calculator className="w-4 h-4 text-indigo-400" />
-              <span>Calculadoras & Risco</span>
+              <span>Calculadoras de Risco</span>
             </button>
 
             <button
               onClick={() => onTabChange('population_health')}
-              className={`px-3.5 py-2 rounded-xl font-semibold transition-all flex items-center space-x-2 whitespace-nowrap ${
-                activeTab === 'population_health' ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30 font-bold' : 'text-slate-400 hover:text-white'
+              className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center space-x-1.5 whitespace-nowrap cursor-pointer ${
+                activeTab === 'population_health' ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30' : 'text-slate-400 hover:text-white'
               }`}
             >
               <Users className="w-4 h-4 text-teal-400" />
-              <span>Saúde Populacional</span>
+              <span>Gestão Populacional</span>
             </button>
 
             <button
-              onClick={() => onTabChange('clinical_ai_engine')}
-              className={`px-3.5 py-2 rounded-xl font-semibold transition-all flex items-center space-x-2 whitespace-nowrap ${
-                activeTab === 'clinical_ai_engine' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30 font-bold' : 'text-slate-400 hover:text-white'
+              onClick={() => onTabChange('ai_governance')}
+              className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center space-x-1.5 whitespace-nowrap cursor-pointer ${
+                activeTab === 'ai_governance' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'text-slate-400 hover:text-white'
               }`}
             >
-              <Brain className="w-4 h-4 text-rose-400" />
-              <span>IA Clínica & Governança</span>
+              <Brain className="w-4 h-4 text-indigo-400" />
+              <span>Engine de IA</span>
             </button>
 
             <button
               onClick={() => onTabChange('security')}
-              className={`px-3.5 py-2 rounded-xl font-semibold transition-all flex items-center space-x-2 whitespace-nowrap ${
-                activeTab === 'security' ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30 font-bold' : 'text-slate-400 hover:text-white'
+              className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center space-x-1.5 whitespace-nowrap cursor-pointer ${
+                activeTab === 'security' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : 'text-slate-400 hover:text-white'
               }`}
             >
-              <Shield className="w-4 h-4" />
+              <Lock className="w-4 h-4 text-rose-400" />
               <span>Segurança & LGPD</span>
             </button>
+
           </div>
         </div>
       )}

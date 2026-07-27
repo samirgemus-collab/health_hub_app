@@ -81,11 +81,17 @@ export const HealthcareTeamPortal: React.FC<HealthcareTeamPortalProps> = ({
     ? patientNotes 
     : patientNotes.filter((n) => n.category === activeCategory);
 
-  const patientChatMessages = chatMessages.filter((m) => m.patientId === selectedPatient.id);
+  const member = currentMember || (teamMembers && teamMembers[0]) || {
+    id: 'team_01',
+    name: 'Enf. Fernando Alencar',
+    role: 'Enfermeiro de Tele-Triagem',
+    currentAssignedPatients: 124,
+    maxPatientCapacity: 150
+  };
 
   // Patient Load Capacity
-  const assignedCount = currentMember.currentAssignedPatients || 124;
-  const maxCapacity = currentMember.maxPatientCapacity || 150;
+  const assignedCount = member.currentAssignedPatients || 124;
+  const maxCapacity = member.maxPatientCapacity || 150;
   const capacityPercent = Math.round((assignedCount / maxCapacity) * 100);
 
   const handleSendChat = (e: React.FormEvent) => {
