@@ -14,8 +14,10 @@ import {
   ChronicCareProtocol,
   PrescribedProtocol,
   MedicationRefillRequest,
-  ClinicalTimelineEvent
+  ClinicalTimelineEvent,
+  HistoricalConsultationRecord
 } from '../types/health';
+import { mockHistoricalConsultations } from '../mock/healthData';
 import { 
   Stethoscope, 
   Users, 
@@ -65,7 +67,8 @@ import {
   AlertCircle,
   Apple,
   Dumbbell,
-  Edit3
+  Edit3,
+  X
 } from 'lucide-react';
 
 interface DoctorPortalProps {
@@ -103,23 +106,28 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
   doctor,
   consents,
   patients = [],
-  auditLogs,
-  conditionsMap,
-  allergiesMap,
-  reportsMap,
+  auditLogs: _auditLogs = [],
+  conditionsMap: _conditionsMap = {},
+  allergiesMap: _allergiesMap = {},
+  reportsMap: _reportsMap = {},
   medicationsMap,
-  preventiveMap,
+  preventiveMap: _preventiveMap = {},
   chronicProtocols = [],
   prescribedProtocols = [],
   refillRequests = [],
   timelineEvents = [],
   onPrescribeProtocol,
-  onFulfillRefillRequest,
+  onFulfillRefillRequest: _onFulfillRefillRequest,
 }) => {
   const availableProtocols = (chronicProtocols && chronicProtocols.length > 0) ? chronicProtocols : [defaultProtocol];
   
   const [selectedPatientId, setSelectedPatientId] = useState<string>(patients[0]?.id || 'user_maria_01');
-  const [activeDoctorTab, setActiveDoctorTab] = useState<'care_plan_doc' | 'guidelines' | 'protocols' | 'emr' | 'prescriptions' | 'dictation' | 'refills'>('care_plan_doc');
+  const [activeDoctorTab, setActiveDoctorTab] = useState<'care_plan_doc' | 'guidelines' | 'protocols' | 'emr' | 'prescriptions' | 'dictation' | 'refills' | 'backlog'>('care_plan_doc');
+  
+  // HISTORICAL CONSULTATIONS BACKLOG STATE
+  const [epochFilter, setEpochFilter] = useState<string>('all');
+  const [backlogSearchQuery, setBacklogSearchQuery] = useState<string>('');
+  const [selectedConsultationForReview, setSelectedConsultationForReview] = useState<HistoricalConsultationRecord | null>(null);
   
   // PATIENT CARE PLAN DOCUMENT EDITABLE STATE
   const [careDietInfo, setCareDietInfo] = useState('Dieta hipossódica (máximo 2g de sódio/dia ou 5g de sal de cozinha). Evitar embutidos, enlatados e temperos industrializados. Aumentar consumo de potássio via frutas e vegetais.');
@@ -355,6 +363,16 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
         >
           <FileSignature className="w-4 h-4 text-indigo-300" />
           <span>📄 Receita Eletrônica ICP-Brasil</span>
+        </button>
+
+        <button
+          onClick={() => setActiveDoctorTab('backlog')}
+          className={`px-4 py-2.5 rounded-xl font-bold transition-all flex items-center space-x-2 whitespace-nowrap ${
+            activeDoctorTab === 'backlog' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <Calendar className="w-4 h-4 text-indigo-300" />
+          <span>📅 Backlog de Consultas ({mockHistoricalConsultations.length})</span>
         </button>
 
         <button
@@ -739,6 +757,252 @@ export const DoctorPortal: React.FC<DoctorPortalProps> = ({
               onChange={(e) => setDictationRawText(e.target.value)}
               className="w-full p-4 bg-slate-900 rounded-2xl border border-slate-800 text-white text-xs"
             />
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 7. TAB: BACKLOG DE CONSULTAS & REVISÃO DE PRONTUÁRIO HISTÓRICO POR ÉPOCA  */}
+      {/* ========================================================================= */}
+      {activeDoctorTab === 'backlog' && (
+        <div className="space-y-6 animate-fadeIn">
+          <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-slate-800 space-y-6">
+            
+            {/* BACKLOG HEADER & FILTERS */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+              <div>
+                <div className="flex items-center space-x-2 text-indigo-400 text-xs font-bold uppercase tracking-wider mb-0.5">
+                  <Calendar className="w-4 h-4" />
+                  <span>Histórico de Atendimentos & Arquivo Médico</span>
+                </div>
+                <h3 className="text-xl font-black text-white">Backlog de Consultas por Época</h3>
+                <p className="text-xs text-slate-300 mt-0.5">
+                  Consulte atendimentos passados, pesquise por ano/trimestre e revise o prontuário SOAP original da época.
+                </p>
+              </div>
+
+              {/* EPOCH & SEARCH FILTERS */}
+              <div className="flex flex-wrap items-center gap-2">
+                <select
+                  value={epochFilter}
+                  onChange={(e) => setEpochFilter(e.target.value)}
+                  className="p-2.5 bg-slate-950 rounded-xl border border-slate-800 text-white font-bold text-xs cursor-pointer"
+                >
+                  <option value="all">Todas as Épocas</option>
+                  <option value="2026">Ano de 2026</option>
+                  <option value="2025">Ano de 2025</option>
+                  <option value="2024">Ano de 2024</option>
+                </select>
+
+                <input
+                  type="text"
+                  placeholder="Buscar por paciente ou CID-10..."
+                  value={backlogSearchQuery}
+                  onChange={(e) => setBacklogSearchQuery(e.target.value)}
+                  className="p-2.5 bg-slate-950 rounded-xl border border-slate-800 text-white text-xs w-48 sm:w-64"
+                />
+              </div>
+            </div>
+
+            {/* BACKLOG TABLE */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-800 text-slate-400 font-bold uppercase text-[10px]">
+                    <th className="py-3 px-3">Data / Época</th>
+                    <th className="py-3 px-3">Paciente</th>
+                    <th className="py-3 px-3">Tipo</th>
+                    <th className="py-3 px-3">Médico / Especialidade</th>
+                    <th className="py-3 px-3">Diagnóstico Principal (CID-10)</th>
+                    <th className="py-3 px-3">Assinatura ICP</th>
+                    <th className="py-3 px-3 text-right">Ação</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-850 text-slate-300">
+                  {mockHistoricalConsultations
+                    .filter(c => epochFilter === 'all' || c.consultationDate.startsWith(epochFilter) || c.consultationEpoch.includes(epochFilter))
+                    .filter(c => !backlogSearchQuery || c.patientName.toLowerCase().includes(backlogSearchQuery.toLowerCase()) || c.mainDiagnosisCid10.toLowerCase().includes(backlogSearchQuery.toLowerCase()))
+                    .map((item) => (
+                      <tr key={item.id} className="hover:bg-slate-900/60 transition-colors">
+                        <td className="py-3.5 px-3">
+                          <span className="text-white font-bold block">{new Date(item.consultationDate).toLocaleDateString()}</span>
+                          <span className="text-[10px] text-indigo-400 font-mono font-bold bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">{item.consultationEpoch}</span>
+                        </td>
+                        <td className="py-3.5 px-3">
+                          <span className="text-white font-bold block">{item.patientName}</span>
+                          <span className="text-[10px] text-slate-400">{item.patientAge} anos ({item.patientSex === 'female' ? 'F' : 'M'})</span>
+                        </td>
+                        <td className="py-3.5 px-3">
+                          <span className="capitalize font-bold text-teal-300 bg-slate-950 px-2.5 py-1 rounded-md border border-slate-800">{item.consultationType}</span>
+                        </td>
+                        <td className="py-3.5 px-3">
+                          <span className="text-white font-medium block">{item.doctorName}</span>
+                          <span className="text-[10px] text-slate-400">{item.specialty}</span>
+                        </td>
+                        <td className="py-3.5 px-3">
+                          <span className="text-amber-300 font-extrabold block">{item.mainDiagnosisCid10}</span>
+                          <span className="text-[10px] text-slate-400 truncate max-w-xs block">{item.diagnosisDescription}</span>
+                        </td>
+                        <td className="py-3.5 px-3">
+                          <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30 font-bold flex items-center gap-1 w-fit">
+                            <ShieldCheck className="w-3 h-3" /> Assinado ICP-Brasil
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-3 text-right">
+                          <button
+                            onClick={() => setSelectedConsultationForReview(item)}
+                            className="py-1.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs transition-all cursor-pointer shadow-sm"
+                          >
+                            🔍 Revisar Prontuário
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE REVISÃO DO PRONTUÁRIO SOAP DA ÉPOCA */}
+      {selectedConsultationForReview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-xl animate-fadeIn">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-3xl w-full p-6 sm:p-8 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            
+            {/* MODAL HEADER */}
+            <div className="flex items-start justify-between border-b border-slate-800 pb-4">
+              <div>
+                <div className="flex items-center space-x-2 text-xs text-indigo-400 font-bold uppercase tracking-wider mb-1">
+                  <FileText className="w-4 h-4" />
+                  <span>Prontuário Histórico da Época • Leitura Protegida (CFM 1.821/2007)</span>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-black text-white">
+                  Atendimento de {new Date(selectedConsultationForReview.consultationDate).toLocaleDateString()} ({selectedConsultationForReview.consultationEpoch})
+                </h2>
+                <p className="text-xs text-slate-300 mt-0.5">
+                  Paciente: <strong className="text-white">{selectedConsultationForReview.patientName}</strong> • Médico: <strong className="text-white">{selectedConsultationForReview.doctorName} ({selectedConsultationForReview.doctorCrm})</strong>
+                </p>
+              </div>
+
+              <button
+                onClick={() => setSelectedConsultationForReview(null)}
+                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* VITALS SNAPSHOT AT EPOCH */}
+            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2 text-xs">
+              <h3 className="font-extrabold text-white text-xs flex items-center justify-between border-b border-slate-800 pb-2">
+                <span>Sinais Vitais Vigentes na Época do Atendimento</span>
+                <span className="text-[10px] text-slate-400">Registrado em {new Date(selectedConsultationForReview.consultationDate).toLocaleDateString()}</span>
+              </h3>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center pt-1">
+                <div className="p-2 bg-slate-900 rounded-xl border border-slate-800">
+                  <span className="text-[10px] text-slate-400 block">Pressão Arterial</span>
+                  <span className="text-sm font-black text-white">{selectedConsultationForReview.vitalsAtEpoch.bloodPressure} mmHg</span>
+                </div>
+                <div className="p-2 bg-slate-900 rounded-xl border border-slate-800">
+                  <span className="text-[10px] text-slate-400 block">Frequência Cardíaca</span>
+                  <span className="text-sm font-black text-emerald-400">{selectedConsultationForReview.vitalsAtEpoch.heartRateBpm} bpm</span>
+                </div>
+                <div className="p-2 bg-slate-900 rounded-xl border border-slate-800">
+                  <span className="text-[10px] text-slate-400 block">Peso</span>
+                  <span className="text-sm font-black text-cyan-300">{selectedConsultationForReview.vitalsAtEpoch.weightKg} kg</span>
+                </div>
+                {selectedConsultationForReview.vitalsAtEpoch.glycemiaMgDl && (
+                  <div className="p-2 bg-slate-900 rounded-xl border border-slate-800">
+                    <span className="text-[10px] text-slate-400 block">Glicemia</span>
+                    <span className="text-sm font-black text-amber-300">{selectedConsultationForReview.vitalsAtEpoch.glycemiaMgDl} mg/dL</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* SOAP NOTES VIEW */}
+            <div className="space-y-3 text-xs">
+              <h3 className="font-extrabold text-white text-sm">Evolução Clínica Registrada (Estrutura SOAP)</h3>
+              
+              <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-1">
+                <span className="text-indigo-400 font-extrabold text-xs block">S — Subjetivo (Anamnese & Queixa)</span>
+                <p className="text-slate-200 leading-relaxed">{selectedConsultationForReview.soapNotes.subjective}</p>
+              </div>
+
+              <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-1">
+                <span className="text-cyan-400 font-extrabold text-xs block">O — Objetivo (Exame Físico & Achados)</span>
+                <p className="text-slate-200 leading-relaxed">{selectedConsultationForReview.soapNotes.objective}</p>
+              </div>
+
+              <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-1">
+                <span className="text-amber-400 font-extrabold text-xs block">A — Avaliação (Hipóteses & CID-10: {selectedConsultationForReview.mainDiagnosisCid10})</span>
+                <p className="text-slate-200 leading-relaxed">{selectedConsultationForReview.soapNotes.assessment}</p>
+              </div>
+
+              <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-1">
+                <span className="text-emerald-400 font-extrabold text-xs block">P — Plano (Conduta & Orientações)</span>
+                <p className="text-slate-200 leading-relaxed">{selectedConsultationForReview.soapNotes.plan}</p>
+              </div>
+            </div>
+
+            {/* PRESCRIPTIONS & EXAMS ISSUED AT EPOCH */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
+                <h4 className="font-extrabold text-white flex items-center gap-1.5">
+                  <Pill className="w-4 h-4 text-teal-400" /> Prescrições Emitidas na Época
+                </h4>
+                {selectedConsultationForReview.prescriptionsIssued.length > 0 ? (
+                  <div className="space-y-2">
+                    {selectedConsultationForReview.prescriptionsIssued.map((rx) => (
+                      <div key={rx.id} className="p-2.5 bg-slate-900 rounded-xl border border-slate-850 text-[11px]">
+                        <strong className="text-white block">{rx.medicationName}</strong>
+                        <span className="text-slate-300 block">{rx.dosageInstruction}</span>
+                        <span className="text-[10px] text-slate-500 font-mono">{rx.duration}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-slate-500 italic">Nenhuma receita medicamentos ematida neste atendimento.</p>
+                )}
+              </div>
+
+              <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
+                <h4 className="font-extrabold text-white flex items-center gap-1.5">
+                  <FileCheck className="w-4 h-4 text-cyan-400" /> Exames Solicitados
+                </h4>
+                {selectedConsultationForReview.examsRequested.length > 0 ? (
+                  <ul className="list-disc list-inside space-y-1 text-slate-300 text-[11px]">
+                    {selectedConsultationForReview.examsRequested.map((ex, i) => (
+                      <li key={i}>{ex}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-slate-500 italic">Nenhum exame solicitado nesta data.</p>
+                )}
+              </div>
+            </div>
+
+            {/* CFM / ICP-BRASIL INTEGRITY STAMP */}
+            <div className="p-4 bg-emerald-950/30 rounded-2xl border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="flex items-center space-x-3">
+                <ShieldCheck className="w-6 h-6 text-emerald-400 shrink-0" />
+                <div>
+                  <span className="text-emerald-400 font-extrabold block">Assinado Digitalmente via ICP-Brasil</span>
+                  <span className="text-[10px] text-slate-400 font-mono">Hash de Integridade: {selectedConsultationForReview.integrityHash}</span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setSelectedConsultationForReview(null)}
+                className="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs cursor-pointer shrink-0"
+              >
+                Fechar Visualizador
+              </button>
+            </div>
+
           </div>
         </div>
       )}

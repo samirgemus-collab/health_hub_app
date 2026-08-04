@@ -20,7 +20,9 @@ import {
   Brain,
   Home,
   Sparkles,
-  Bot
+  Bot,
+  Syringe,
+  ClipboardCheck
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -37,6 +39,8 @@ interface HeaderProps {
   currentDoctor: DoctorProfile;
   currentTeamMember: TeamMemberProfile;
   onOpenSegSaudeAuth?: () => void;
+  onOpenEmergencySos?: () => void;
+  onOpenProfileRegistration?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -51,6 +55,8 @@ export const Header: React.FC<HeaderProps> = ({
   userRole,
   onToggleUserRole,
   onOpenSegSaudeAuth,
+  onOpenEmergencySos,
+  onOpenProfileRegistration,
 }) => {
   return (
     <header className="sticky top-0 z-40 glass-panel border-b border-slate-900 shadow-xl backdrop-blur-xl bg-slate-950/90">
@@ -59,19 +65,23 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         
         {/* Brand Logo */}
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-teal-500 via-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-teal-500/20">
+        <div 
+          onClick={() => onTabChange('landing')}
+          className="flex items-center space-x-3 cursor-pointer group"
+          title="Ir para Landing Page"
+        >
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-teal-500 via-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-teal-500/20 group-hover:scale-105 transition-transform">
             <Activity className="w-6 h-6 text-slate-950 animate-heartbeat" />
           </div>
           <div>
             <div className="flex items-center space-x-1.5">
-              <span className="font-black text-lg tracking-tight text-white">HealthHub.AI</span>
+              <span className="font-black text-lg tracking-tight text-white group-hover:text-cyan-300 transition-colors">Dono da Saúde</span>
               <span className="text-[10px] px-2 py-0.5 rounded-md bg-teal-500/20 text-teal-300 font-extrabold border border-teal-500/30">
-                SEG Saúde
+                Wellness Copilot
               </span>
             </div>
             <p className="text-[10px] text-slate-400 font-medium hidden sm:block">
-              Governança Médica • IA Tríplice & Telemetria IoT
+              Sua saúde nas suas mãos, com ciência ao seu lado
             </p>
           </div>
         </div>
@@ -111,7 +121,7 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             <Users className="w-4 h-4" />
-            <span>3. Equipe & Agentes</span>
+            <span>3. Agentes de Saúde & Equipe (ACS)</span>
           </button>
 
           <button
@@ -129,6 +139,18 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* RIGHT SECURITY & SEG SAÚDE AUTH BUTTON */}
         <div className="flex items-center space-x-2">
+          <button
+            onClick={() => onTabChange('landing')}
+            className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer ${
+              activeTab === 'landing' 
+                ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-sm' 
+                : 'bg-slate-900 border-slate-800 text-slate-300 hover:text-white hover:border-slate-700'
+            }`}
+            title="Ir para a Landing Page institucional"
+          >
+            <span>🌐 Landing Page</span>
+          </button>
+
           {onOpenSegSaudeAuth && (
             <button
               onClick={onOpenSegSaudeAuth}
@@ -136,6 +158,27 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <Lock className="w-3.5 h-3.5" />
               <span>SEG Saúde Auth</span>
+            </button>
+          )}
+
+          {userRole === 'patient' && onOpenProfileRegistration && (
+            <button
+              onClick={onOpenProfileRegistration}
+              className="py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-cyan-300 font-bold text-xs flex items-center space-x-1.5 cursor-pointer"
+              title="Abrir Ficha Cadastral e Consentimentos LGPD"
+            >
+              <User className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Minha Ficha & LGPD</span>
+            </button>
+          )}
+
+          {userRole === 'patient' && onOpenEmergencySos && (
+            <button
+              onClick={onOpenEmergencySos}
+              className="py-2 px-3.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-500 hover:from-rose-500 hover:to-red-400 text-white font-black text-xs flex items-center space-x-1.5 shadow-lg shadow-rose-600/30 transition-all cursor-pointer animate-pulse"
+              title="Disparar Alerta SOS de Emergência Médica"
+            >
+              <span>🚨 SOS 24/7</span>
             </button>
           )}
 
@@ -172,7 +215,7 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={() => onToggleUserRole('healthcare_team')}
           className={`px-2 py-1 rounded-lg font-bold ${userRole === 'healthcare_team' ? 'bg-cyan-500 text-slate-950' : 'text-slate-400'}`}
         >
-          Equipe/ACS
+          Agentes/ACS
         </button>
         <button
           onClick={() => onToggleUserRole('admin')}
@@ -195,6 +238,36 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <Home className="w-4 h-4 text-cyan-400" />
               <span>Início Unificado</span>
+            </button>
+
+            <button
+              onClick={() => onTabChange('health_map')}
+              className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center space-x-1.5 whitespace-nowrap cursor-pointer ${
+                activeTab === 'health_map' ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Activity className="w-4 h-4 text-teal-400" />
+              <span>Meu Mapa de Saúde</span>
+            </button>
+
+            <button
+              onClick={() => onTabChange('preventive_agenda')}
+              className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center space-x-1.5 whitespace-nowrap cursor-pointer ${
+                activeTab === 'preventive_agenda' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Calendar className="w-4 h-4 text-cyan-400" />
+              <span>Minha Agenda Preventiva</span>
+            </button>
+
+            <button
+              onClick={() => onTabChange('preventive_plan')}
+              className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center space-x-1.5 whitespace-nowrap cursor-pointer ${
+                activeTab === 'preventive_plan' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <ClipboardCheck className="w-4 h-4 text-amber-400" />
+              <span>Meu Plano de Prevenção</span>
             </button>
 
             <button
@@ -228,13 +301,43 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
 
             <button
+              onClick={() => onTabChange('preventive_checkup')}
+              className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center space-x-1.5 whitespace-nowrap cursor-pointer ${
+                activeTab === 'preventive_checkup' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <ClipboardCheck className="w-4 h-4 text-cyan-400" />
+              <span>Check-up Preventivo</span>
+            </button>
+
+            <button
+              onClick={() => onTabChange('family_history')}
+              className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center space-x-1.5 whitespace-nowrap cursor-pointer ${
+                activeTab === 'family_history' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Users className="w-4 h-4 text-indigo-400" />
+              <span>Histórico Familiar</span>
+            </button>
+
+            <button
+              onClick={() => onTabChange('vaccination')}
+              className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center space-x-1.5 whitespace-nowrap cursor-pointer ${
+                activeTab === 'vaccination' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Syringe className="w-4 h-4 text-cyan-400" />
+              <span>Minha Vacinação</span>
+            </button>
+
+            <button
               onClick={() => onTabChange('preventive')}
               className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center space-x-1.5 whitespace-nowrap cursor-pointer ${
                 activeTab === 'preventive' ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30' : 'text-slate-400 hover:text-white'
               }`}
             >
-              <Calendar className="w-4 h-4 text-teal-400" />
-              <span>Agente Preventivo</span>
+              <Bot className="w-4 h-4 text-teal-400" />
+              <span>Agente Preventivo (IA)</span>
             </button>
 
             <button
@@ -268,9 +371,9 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
 
             <button
-              onClick={() => onTabChange('ai_governance')}
+              onClick={() => onTabChange('clinical_ai_engine')}
               className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center space-x-1.5 whitespace-nowrap cursor-pointer ${
-                activeTab === 'ai_governance' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'text-slate-400 hover:text-white'
+                activeTab === 'clinical_ai_engine' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'text-slate-400 hover:text-white'
               }`}
             >
               <Brain className="w-4 h-4 text-indigo-400" />

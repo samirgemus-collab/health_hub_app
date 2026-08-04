@@ -16,7 +16,16 @@ import { PatientJornadaTimeline } from './components/PatientJornadaTimeline';
 import { PopulationHealthCoordinator } from './components/PopulationHealthCoordinator';
 import { ClinicalAiGovernanceEngine } from './components/ClinicalAiGovernanceEngine';
 import { HomePage } from './components/HomePage';
+import { LandingPage } from './components/LandingPage';
 import { SegSaudeAuthModal } from './components/SegSaudeAuthModal';
+import { MinhaVacinacaoModule } from './components/MinhaVacinacaoModule';
+import { EmergencySosModal } from './components/EmergencySosModal';
+import { PreventiveCheckupModule } from './components/PreventiveCheckupModule';
+import { FamilyHistoryModule } from './components/FamilyHistoryModule';
+import { PatientProfileRegistrationModal } from './components/PatientProfileRegistrationModal';
+import { HealthMapModule } from './components/HealthMapModule';
+import { PreventiveAgendaModule } from './components/PreventiveAgendaModule';
+import { PreventivePlanModule } from './components/PreventivePlanModule';
 
 import { 
   mockProfiles, 
@@ -64,11 +73,11 @@ import {
 
 export function App() {
   const [currentProfile, setCurrentProfile] = useState<UserProfile>(mockProfiles[0]);
-  const [userRole, setUserRole] = useState<UserRole>('patient');
-  const [activeTab, setActiveTab] = useState<string>('home');
+  const [userRole, setUserRole] = useState<UserRole>('doctor');
+  const [activeTab, setActiveTab] = useState<string>('doctor');
 
   // COOKIE CONSENT STATE
-  const [showCookieModal, setShowCookieModal] = useState(true);
+  const [showCookieModal, setShowCookieModal] = useState(false);
   const [cookieSettings, setCookieSettings] = useState<CookieSettings>({
     essential: true,
     healthTelemetry: true,
@@ -108,6 +117,40 @@ export function App() {
   const currentPreventive = preventiveMap[currentProfile.id] || [];
   const currentReports = reportsMap[currentProfile.id] || [];
 
+  // Emergency SOS State
+  const [isEmergencySosOpen, setIsEmergencySosOpen] = useState(false);
+  const [isProfileRegistrationOpen, setIsProfileRegistrationOpen] = useState(false);
+
+  const handleUpdateProfile = (updatedFields: Partial<UserProfile>) => {
+    setCurrentProfile(prev => ({ ...prev, ...updatedFields }));
+  };
+
+  const handleDispatchEmergencyAlert = (sosData: {
+    locationGps: string;
+    vitalsSnapshot: { heartRateBpm: number; spO2Percent: number; bloodPressure: string };
+    notifiedContacts: string[];
+  }) => {
+    // 1. Create Critical Event in Clinical Timeline
+    const criticalTimelineEvent: ClinicalTimelineEvent = {
+      id: `evt_sos_${Date.now()}`,
+      patientId: currentProfile.id,
+      tenantId: 'tenant_01',
+      eventType: 'alert',
+      eventDate: new Date().toISOString().split('T')[0],
+      title: '🚨 DISPARO DE ALERTA DE EMERGÊNCIA SOS 24/7',
+      professionalSummary: `Alerta Crítico SOS acionado pelo paciente. Localização: ${sosData.locationGps}. Telemetria: FC ${sosData.vitalsSnapshot.heartRateBpm} bpm, SpO2 ${sosData.vitalsSnapshot.spO2Percent}%, PA ${sosData.vitalsSnapshot.bloodPressure}. Notificados: ${sosData.notifiedContacts.join(', ')}.`,
+      patientSummary: 'Você disparou o Alerta SOS de Emergência Médica. A equipe de saúde e seus contatos de emergência foram notificados.',
+      sourceSystem: 'Dono da Saúde SOS Engine',
+      sourceRecordId: `sos_${Date.now()}`,
+      clinicalStatus: 'finding',
+      priority: 'critical',
+      visibilityToPatient: 'visible',
+      createdAt: new Date().toISOString()
+    };
+
+    setTimelineEvents(prev => [criticalTimelineEvent, ...prev]);
+  };
+
   // Handlers
   const handleSelectProfile = (p: UserProfile) => {
     setCurrentProfile(p);
@@ -133,6 +176,17 @@ export function App() {
     // RECORD DIRECTLY INTO THE PATIENT'S EMR TIMELINE (FHIR CarePlan Event)
     const newTimelineEvent: ClinicalTimelineEvent = {
       id: `evt_proto_${Date.now()}`,
+      patientId: currentProfile.id,
+      tenantId: 'tenant_default',
+      eventType: 'consultation',
+      eventDate: new Date().toISOString(),
+      professionalSummary: `Protocolo Crônico ativado pelo ${fullProtocol.doctorName}`,
+      patientSummary: `Protocolo Crônico ativado pelo ${fullProtocol.doctorName}`,
+      sourceSystem: 'EHR',
+      sourceRecordId: `proto_${Date.now()}`,
+      clinicalStatus: 'confirmed',
+      priority: 'high',
+      createdAt: new Date().toISOString(),
       date: new Date().toLocaleDateString('pt-BR'),
       category: 'protocol',
       title: `Ativação do Protocolo Clínico: ${fullProtocol.conditionName}`,
@@ -302,9 +356,37 @@ export function App() {
     setSecuritySettings((prev) => ({ ...prev, biometricAuthEnabled: !prev.biometricAuthEnabled }));
   };
 
+  const handleToggleRole = (role: UserRole) => {
+    setUserRole(role);
+    if (role === 'doctor') setActiveTab('doctor');
+    else if (role === 'healthcare_team') setActiveTab('healthcare_team');
+    else if (role === 'admin') setActiveTab('admin');
+    else if (activeTab === 'landing' || activeTab === 'doctor' || activeTab === 'healthcare_team' || activeTab === 'admin') {
+      setActiveTab('dashboard');
+    }
+  };
+
+  const handleTabChange = (tab: string) => {
+    if (tab === 'doctor') {
+      setUserRole('doctor');
+      setActiveTab('doctor');
+    } else if (tab === 'team' || tab === 'healthcare_team') {
+      setUserRole('healthcare_team');
+      setActiveTab('healthcare_team');
+    } else if (tab === 'admin') {
+      setUserRole('admin');
+      setActiveTab('admin');
+    } else if (tab === 'landing') {
+      setActiveTab('landing');
+    } else {
+      setUserRole('patient');
+      setActiveTab(tab);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
-      
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-teal-500 selection:text-slate-950">
+
       {/* Cookie Consent Modal */}
       <CookieConsentModal
         isOpen={showCookieModal}
@@ -317,21 +399,42 @@ export function App() {
         profiles={mockProfiles}
         onSelectProfile={handleSelectProfile}
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
         e2eeEnabled={securitySettings.e2eeEnabled}
         biometricActive={securitySettings.biometricAuthEnabled}
         onToggleBiometric={handleToggleBiometric}
         userRole={userRole}
-        onToggleUserRole={setUserRole}
+        onToggleUserRole={handleToggleRole}
         currentDoctor={mockDoctors[0]}
         currentTeamMember={mockTeamMembers[0]}
         onOpenSegSaudeAuth={() => setIsSegSaudeAuthOpen(true)}
+        onOpenEmergencySos={() => setIsEmergencySosOpen(true)}
+        onOpenProfileRegistration={() => setIsProfileRegistrationOpen(true)}
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        
-        {userRole === 'admin' ? (
+      {activeTab === 'landing' ? (
+        <LandingPage
+          onEnterPlatform={(role) => {
+            if (role === 'doctor') {
+              setUserRole('doctor');
+              setActiveTab('doctor');
+            } else if (role === 'team') {
+              setUserRole('healthcare_team');
+              setActiveTab('healthcare_team');
+            } else if (role === 'admin') {
+              setUserRole('admin');
+              setActiveTab('admin');
+            } else {
+              setUserRole('patient');
+              setActiveTab('dashboard');
+            }
+          }}
+          onNavigateTab={handleTabChange}
+        />
+      ) : (
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          {userRole === 'admin' ? (
           <AdminPortal
             patients={mockProfiles}
             doctors={mockDoctors}
@@ -381,24 +484,8 @@ export function App() {
                 user={currentProfile}
                 doctor={mockDoctors[0]}
                 activeRole={userRole}
-                onSelectRole={(role) => {
-                  setUserRole(role);
-                  if (role === 'doctor') setActiveTab('doctor');
-                  if (role === 'team') setActiveTab('healthcare_team');
-                  if (role === 'admin') setActiveTab('admin');
-                }}
-                onNavigateTab={(tab) => {
-                  if (tab === 'doctor') {
-                    setUserRole('doctor');
-                  } else if (tab === 'team') {
-                    setUserRole('healthcare_team');
-                  } else if (tab === 'admin') {
-                    setUserRole('admin');
-                  } else {
-                    setUserRole('patient');
-                    setActiveTab(tab);
-                  }
-                }}
+                onSelectRole={(role) => handleToggleRole(role === 'team' ? 'healthcare_team' : role)}
+                onNavigateTab={handleTabChange}
               />
             )}
 
@@ -411,6 +498,7 @@ export function App() {
                 preventiveCare={currentPreventive}
                 reports={currentReports}
                 onNavigateToTab={setActiveTab}
+                onOpenEmergencySos={() => setIsEmergencySosOpen(true)}
               />
             )}
 
@@ -442,6 +530,48 @@ export function App() {
                 profile={currentProfile}
                 recommendations={currentPreventive}
                 onScheduleReminder={handleSchedulePreventiveReminder}
+              />
+            )}
+
+            {activeTab === 'vaccination' && (
+              <MinhaVacinacaoModule
+                profile={currentProfile}
+                userRole={userRole}
+              />
+            )}
+
+            {activeTab === 'preventive_checkup' && (
+              <PreventiveCheckupModule
+                profile={currentProfile}
+                onNavigateToTab={setActiveTab}
+              />
+            )}
+
+            {activeTab === 'family_history' && (
+              <FamilyHistoryModule
+                profile={currentProfile}
+              />
+            )}
+
+            {activeTab === 'health_map' && (
+              <HealthMapModule
+                profile={currentProfile}
+                onNavigateToTab={setActiveTab}
+              />
+            )}
+
+            {activeTab === 'preventive_agenda' && (
+              <PreventiveAgendaModule
+                profile={currentProfile}
+                onNavigateToTab={setActiveTab}
+                userRole={userRole}
+              />
+            )}
+
+            {activeTab === 'preventive_plan' && (
+              <PreventivePlanModule
+                profile={currentProfile}
+                onNavigateToTab={setActiveTab}
               />
             )}
 
@@ -501,8 +631,8 @@ export function App() {
             )}
           </>
         )}
-
       </main>
+      )}
 
       {/* SEG Saúde Auth Modal */}
       <SegSaudeAuthModal
@@ -512,6 +642,23 @@ export function App() {
           setUserRole(role);
           setIsSegSaudeAuthOpen(false);
         }}
+      />
+
+      {/* Emergency SOS Modal */}
+      <EmergencySosModal
+        profile={currentProfile}
+        vitals={mockVitalMetrics}
+        isOpen={isEmergencySosOpen}
+        onClose={() => setIsEmergencySosOpen(false)}
+        onDispatchEmergencyAlert={handleDispatchEmergencyAlert}
+      />
+
+      {/* Patient Profile & Family Sharing LGPD Modal */}
+      <PatientProfileRegistrationModal
+        profile={currentProfile}
+        isOpen={isProfileRegistrationOpen}
+        onClose={() => setIsProfileRegistrationOpen(false)}
+        onUpdateProfile={handleUpdateProfile}
       />
 
       {/* Footer */}

@@ -11,7 +11,7 @@ export const CookieConsentModal: React.FC<CookieConsentModalProps> = ({
   isOpen,
   onAccept,
 }) => {
-  const [hasScrolledToEnd, setHasScrolledToEnd] = useState(false);
+  const [hasScrolledToEnd, setHasScrolledToEnd] = useState(true);
   const [essential] = useState(true);
   const [healthTelemetry, setHealthTelemetry] = useState(true);
   const [analytics, setAnalytics] = useState(true);
@@ -24,7 +24,6 @@ export const CookieConsentModal: React.FC<CookieConsentModalProps> = ({
   const handleScroll = () => {
     if (scrollRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-      // Check if user scrolled to bottom (within 10px threshold)
       if (scrollTop + clientHeight >= scrollHeight - 15) {
         setHasScrolledToEnd(true);
       }
@@ -32,7 +31,6 @@ export const CookieConsentModal: React.FC<CookieConsentModalProps> = ({
   };
 
   const handleConfirm = () => {
-    if (!hasScrolledToEnd) return;
     onAccept({
       essential: true,
       healthTelemetry,
@@ -158,23 +156,14 @@ export const CookieConsentModal: React.FC<CookieConsentModalProps> = ({
           </div>
         </div>
 
-        {/* ACTION BUTTON WITH STRICT DISABLED STATE UNTIL SCROLLED */}
-        <div className="pt-2">
+        {/* ACTION BUTTON */}
+        <div className="pt-2 flex flex-col sm:flex-row gap-3">
           <button
-            disabled={!hasScrolledToEnd}
             onClick={handleConfirm}
-            className={`w-full py-3.5 px-4 rounded-2xl font-black text-xs flex items-center justify-center space-x-2 transition-all ${
-              hasScrolledToEnd
-                ? 'bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-slate-950 shadow-lg shadow-teal-500/25 cursor-pointer'
-                : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed opacity-60'
-            }`}
+            className="w-full py-3.5 px-4 rounded-2xl font-black text-xs flex items-center justify-center space-x-2 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-slate-950 shadow-lg shadow-teal-500/25 cursor-pointer transition-all"
           >
             <CheckCircle2 className="w-5 h-5" />
-            <span>
-              {hasScrolledToEnd 
-                ? 'Concordar com Termos e Ativar Cookies Selecionados' 
-                : 'Role o Termo até o fim para aceitar'}
-            </span>
+            <span>Concordar e Acessar Plataforma</span>
           </button>
         </div>
 

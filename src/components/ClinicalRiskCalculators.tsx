@@ -619,6 +619,36 @@ export const ClinicalRiskCalculators: React.FC<ClinicalRiskCalculatorsProps> = (
               );
             })()}
 
+            {/* MOTOR DE EVIDÊNCIAS E SEGURANÇA CLÍNICA */}
+            <div className="p-5 bg-slate-950 rounded-2xl border border-teal-500/30 space-y-3 text-left">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                <span className="text-xs font-black text-teal-400 uppercase tracking-widest flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-teal-400" /> Motor de Evidências e Segurança Clínica (Dono da Saúde)
+                </span>
+                <span className="text-[10px] text-slate-400 font-mono">Diretriz Validada</span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span className="text-slate-400 text-[11px] block font-bold">Ferramenta Validada:</span>
+                  <p className="text-white font-extrabold">{activeCalculator.toUpperCase()} Algorithm v2.5</p>
+                </div>
+                <div>
+                  <span className="text-slate-400 text-[11px] block font-bold">Referência Científica:</span>
+                  <p className="text-slate-300 font-mono text-[11px]">Directives SBC / AHA / KDIGO 2023-2024</p>
+                </div>
+              </div>
+
+              <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 text-xs text-slate-300 space-y-1">
+                <span className="font-bold text-amber-300 flex items-center gap-1">
+                  <Info className="w-3.5 h-3.5" /> Orientação de Segurança Clínica:
+                </span>
+                <p className="text-[11px] leading-relaxed">
+                  "Com base nas informações fornecidas, seu risco estimado encontra-se nesta faixa. O resultado não constitui diagnóstico definitivo e deve ser interpretado por um profissional de saúde qualificado."
+                </p>
+              </div>
+            </div>
+
             {/* DOCTOR VALIDATION ACTIONS */}
             <div className="p-5 bg-slate-950 rounded-2xl border border-slate-800 space-y-4">
               <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">

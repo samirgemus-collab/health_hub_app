@@ -52,7 +52,7 @@ async function deriveEncryptionKey(passphrase: string, salt: Uint8Array): Promis
   return window.crypto.subtle.deriveKey(
     {
       name: 'PBKDF2',
-      salt: salt,
+      salt: salt as any,
       iterations: 100000,
       hash: 'SHA-256'
     },
@@ -81,7 +81,7 @@ export async function encryptDataE2EE(plainText: string, passphrase: string): Pr
   const encryptedBuffer = await window.crypto.subtle.encrypt(
     {
       name: 'AES-256-GCM',
-      iv: iv
+      iv: iv as any
     },
     cryptoKey,
     dataBuffer
@@ -111,10 +111,10 @@ export async function decryptDataE2EE(payload: EncryptedPayload, passphrase: str
   const decryptedBuffer = await window.crypto.subtle.decrypt(
     {
       name: 'AES-256-GCM',
-      iv: ivBuffer
+      iv: ivBuffer as any
     },
     cryptoKey,
-    cipherBuffer
+    cipherBuffer as any
   );
 
   const decoder = new TextDecoder();

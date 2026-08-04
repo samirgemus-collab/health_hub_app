@@ -85,7 +85,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   securitySettings,
   subscriptions: initialSubscriptions = [],
 }) => {
-  const [activeAdminTab, setActiveAdminTab] = useState<'compliance' | 'approval_matrix' | 'audit'>('compliance');
+  const [activeAdminTab, setActiveAdminTab] = useState<'compliance' | 'approval_matrix' | 'audit' | 'rnds_governance'>('rnds_governance');
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
@@ -318,6 +318,14 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         {/* System Sub-Tabs */}
         <div className="flex space-x-1 p-1 bg-slate-950 rounded-2xl border border-slate-800 text-xs overflow-x-auto shrink-0">
           <button
+            onClick={() => setActiveAdminTab('rnds_governance')}
+            className={`px-3.5 py-2 rounded-xl font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+              activeAdminTab === 'rnds_governance' ? 'bg-cyan-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <ShieldCheck className="w-4 h-4" /> Governança RNDS & ICP-Brasil
+          </button>
+          <button
             onClick={() => setActiveAdminTab('compliance')}
             className={`px-3.5 py-2 rounded-xl font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
               activeAdminTab === 'compliance' ? 'bg-rose-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
@@ -343,6 +351,83 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
           </button>
         </div>
       </div>
+
+      {/* ========================================================================= */}
+      {/* 0. TAB: GOVERNANÇA RNDS, DATASUS & CERTIFICADO ICP-BRASIL                 */}
+      {/* ========================================================================= */}
+      {activeAdminTab === 'rnds_governance' && (
+        <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-slate-800 space-y-6">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-cyan-500/10 rounded-2xl border border-cyan-500/30 text-cyan-400">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-white">Configuração da RNDS / DATASUS & Certificado Digital</h3>
+                <p className="text-xs text-slate-400">
+                  Gerencie as credenciais do estabelecimento de saúde, CNES e o Certificado ICP-Brasil e-CNPJ A1/A3.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+            <div className="p-5 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
+              <h4 className="font-extrabold text-white text-sm">Dados do Estabelecimento (CNES)</h4>
+              
+              <div>
+                <label className="block text-slate-400 mb-1 font-bold">Número de CNES Registrado no DATASUS</label>
+                <input
+                  type="text"
+                  defaultValue="2048910"
+                  className="w-full p-3 bg-slate-900 rounded-xl border border-slate-800 text-white font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1 font-bold">Ambiente de Operação RNDS</label>
+                <select className="w-full p-3 bg-slate-900 rounded-xl border border-slate-800 text-white font-bold">
+                  <option value="homologation">Homologação (Staging DATASUS)</option>
+                  <option value="production">Produção Oficial RNDS (saude.gov.br)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1 font-bold">Client ID RNDS OAuth 2.0</label>
+                <input
+                  type="text"
+                  defaultValue="RNDS_CLIENT_PROD_8910"
+                  className="w-full p-3 bg-slate-900 rounded-xl border border-slate-800 text-slate-300 font-mono"
+                />
+              </div>
+            </div>
+
+            <div className="p-5 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
+              <h4 className="font-extrabold text-white text-sm">Certificado Digital ICP-Brasil (e-CNPJ)</h4>
+              
+              <div className="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/30 space-y-1">
+                <span className="text-emerald-400 font-extrabold block text-xs">✓ Certificado e-CNPJ A1 Ativo e Válido</span>
+                <p className="text-slate-300 text-[11px]">Empresa: Clínica & Saúde Preventiva LTDA (CNPJ 18.940.812/0001-90)</p>
+                <span className="text-[10px] text-slate-400 font-mono block">Validade: 15/12/2027 • Emissor: AC Syngular ICP-Brasil</span>
+              </div>
+
+              <div className="space-y-2 pt-2">
+                <span className="font-bold text-slate-300 block">Toggles de Feature Flags RNDS:</span>
+                
+                <div className="flex items-center justify-between p-2.5 bg-slate-900 rounded-xl border border-slate-800">
+                  <span className="text-slate-300">Envio de Imunizações (FEATURE_RNDS_VACCINATION_SEND)</span>
+                  <span className="px-2.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-bold text-[10px]">ATIVO</span>
+                </div>
+
+                <div className="flex items-center justify-between p-2.5 bg-slate-900 rounded-xl border border-slate-800">
+                  <span className="text-slate-300">Consulta da Carteira SUS (FEATURE_RNDS_VACCINATION_QUERY)</span>
+                  <span className="px-2.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-bold text-[10px]">ATIVO</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ========================================================================= */}
       {/* 1. TAB: REGULARIDADES MUNICIPAIS, ESTADUAIS, FEDERAIS & COLABORADORES      */}

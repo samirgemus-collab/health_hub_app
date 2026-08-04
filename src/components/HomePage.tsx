@@ -202,7 +202,7 @@ export const HomePage: React.FC<HomePageProps> = ({
 
           {/* CARD 4: ESTRATIFICAÇÃO DE RISCO */}
           <div 
-            onClick={() => onNavigateTab('risk')}
+            onClick={() => onNavigateTab('risk_calculators')}
             className="glass-card rounded-3xl p-6 border border-slate-800 space-y-3 hover:border-amber-500/50 transition-all cursor-pointer group"
           >
             <div className="flex items-center justify-between">
@@ -219,7 +219,7 @@ export const HomePage: React.FC<HomePageProps> = ({
 
           {/* CARD 5: GESTÃO POPULACIONAL & DETECTOR */}
           <div 
-            onClick={() => onNavigateTab('population')}
+            onClick={() => onNavigateTab('population_health')}
             className="glass-card rounded-3xl p-6 border border-slate-800 space-y-3 hover:border-emerald-500/50 transition-all cursor-pointer group"
           >
             <div className="flex items-center justify-between">
@@ -236,7 +236,7 @@ export const HomePage: React.FC<HomePageProps> = ({
 
           {/* CARD 6: ARQUITETURA TRÍPLICE DE IA */}
           <div 
-            onClick={() => onNavigateTab('ai_governance')}
+            onClick={() => onNavigateTab('clinical_ai_engine')}
             className="glass-card rounded-3xl p-6 border border-slate-800 space-y-3 hover:border-rose-500/50 transition-all cursor-pointer group"
           >
             <div className="flex items-center justify-between">

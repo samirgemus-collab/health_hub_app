@@ -104,6 +104,7 @@ export const PatientJornadaTimeline: React.FC<PatientJornadaTimelineProps> = ({
         professionalSummary: `Relato do Paciente via Ditado por Voz: "${patientVoiceText}"`,
         patientSummary: `Você gravou por voz: "${patientVoiceText}"`,
         sourceSystem: 'HealthHub Voice Dictation App',
+        sourceRecordId: `rec_voice_${Date.now()}`,
         clinicalStatus: 'confirmed',
         priority: 'medium',
         visibilityToPatient: 'visible',
@@ -203,61 +204,60 @@ export const PatientJornadaTimeline: React.FC<PatientJornadaTimelineProps> = ({
         </div>
       </div>
 
-      {/* ========================================================================= */}
-      {/* 1. PATIENT VOICE DICTATION WIDGET (DITADO POR VOZ DO PACIENTE)            */}
-      {/* ========================================================================= */}
-      <div className="glass-panel rounded-3xl p-6 border border-cyan-500/30 bg-gradient-to-r from-slate-950 via-slate-900 to-cyan-950/20 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-3">
-          <div className="flex items-center space-x-3">
-            <div className="p-3 bg-cyan-500/10 rounded-2xl border border-cyan-500/30 text-cyan-400">
-              <Mic className="w-6 h-6" />
+
+
+      {/* PILAR 2: TENDÊNCIA E TRAJETÓRIA LONGITUDINAL DE SAÚDE */}
+      <div className="glass-panel rounded-3xl p-6 border border-amber-500/30 bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950/20 space-y-4">
+        <div className="flex items-center space-x-3 border-b border-slate-800 pb-3">
+          <div className="p-3 bg-amber-500/10 rounded-2xl border border-amber-500/30 text-amber-400">
+            <TrendingUp className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="flex items-center space-x-2 text-[10px] font-extrabold text-amber-400 uppercase tracking-widest">
+              <span>Pilar 2</span>
+              <span>•</span>
+              <span>Linha do Tempo Inteligente & Trajetórias</span>
             </div>
-            <div>
-              <h3 className="text-base font-extrabold text-white flex items-center gap-2">
-                🎙️ Ditado por Voz do Paciente (Diário de Sintomas por Áudio)
-              </h3>
-              <p className="text-xs text-slate-300">
-                Fale como você está se sentindo hoje. A IA converte sua voz em registros de saúde para seu médico acompanhar!
-              </p>
+            <h3 className="text-base font-extrabold text-white">
+              Análise Longitudinal de Tendências
+            </h3>
+          </div>
+        </div>
+
+        {/* Longitudinal Trajectory Example */}
+        <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-bold text-white flex items-center gap-1.5">
+              <Activity className="w-4 h-4 text-amber-400" /> Trajetória da Glicemia de Jejum (6 Meses):
+            </span>
+            <span className="text-[10px] font-extrabold text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/30">
+              Tendência Detectada
+            </span>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 text-center text-xs">
+            <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
+              <span className="text-[10px] text-slate-400 block">Janeiro/2026</span>
+              <span className="text-sm font-black text-emerald-400">98 mg/dL</span>
+            </div>
+            <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
+              <span className="text-[10px] text-slate-400 block">Abril/2026</span>
+              <span className="text-sm font-black text-amber-300">105 mg/dL</span>
+            </div>
+            <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
+              <span className="text-[10px] text-slate-400 block">Julho/2026</span>
+              <span className="text-sm font-black text-amber-400">112 mg/dL</span>
             </div>
           </div>
 
-          <button
-            onClick={handleTogglePatientDictation}
-            className={`py-3 px-5 rounded-2xl font-black text-xs flex items-center space-x-2 transition-all cursor-pointer ${
-              isRecordingDictation ? 'bg-rose-600 text-white animate-pulse' : 'bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-lg shadow-cyan-500/20'
-            }`}
-          >
-            {isRecordingDictation ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-            <span>{isRecordingDictation ? '🔴 Gravando sua voz...' : '🎙️ Falar Meus Sintomas por Voz'}</span>
-          </button>
-        </div>
-
-        <div className="space-y-3">
-          <textarea
-            rows={3}
-            value={patientVoiceText}
-            onChange={(e) => setPatientVoiceText(e.target.value)}
-            placeholder="Digite ou fale como está se sentindo..."
-            className="w-full p-4 bg-slate-900/90 rounded-2xl border border-slate-800 text-white text-xs font-sans focus:outline-none focus:border-cyan-500"
-          />
-
-          <div className="flex justify-end">
-            <button
-              onClick={handleSavePatientVoiceToTimeline}
-              disabled={isStructuringPatientVoice || !patientVoiceText.trim()}
-              className="py-2.5 px-5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-400 hover:from-cyan-400 hover:to-teal-300 text-slate-950 font-black text-xs flex items-center space-x-1.5 cursor-pointer shadow-md shadow-cyan-500/20 disabled:opacity-50"
-            >
-              <Plus className="w-4 h-4" />
-              <span>{isStructuringPatientVoice ? 'Gravando no Prontuário...' : 'Gravar Relato por Voz na Linha do Tempo'}</span>
-            </button>
+          <div className="p-3 bg-slate-900/90 rounded-xl border border-amber-500/20 text-xs text-slate-300 leading-relaxed flex items-start space-x-2">
+            <HelpCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+            <p className="text-[11px]">
+              <strong>Orientação do Copiloto:</strong> Foi identificada elevação progressiva da glicemia nos últimos seis meses. Esse achado isoladamente não estabelece diagnóstico. Recomenda-se avaliação clínica e eventual repetição dos exames com seu médico assistente.
+            </p>
           </div>
         </div>
       </div>
-
-      {/* ========================================================================= */}
-      {/* 2. TIMELINE EVENTS DISPLAY                                                */}
-      {/* ========================================================================= */}
       <div className="glass-panel rounded-3xl p-6 border border-slate-800 space-y-6">
         
         {/* VIEW HEADER & FILTERS */}
