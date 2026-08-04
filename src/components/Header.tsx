@@ -41,6 +41,9 @@ interface HeaderProps {
   onOpenSegSaudeAuth?: () => void;
   onOpenEmergencySos?: () => void;
   onOpenProfileRegistration?: () => void;
+  hidePortalSelector?: boolean;
+  onSignOut?: () => void;
+  userEmail?: string;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -57,6 +60,9 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenSegSaudeAuth,
   onOpenEmergencySos,
   onOpenProfileRegistration,
+  hidePortalSelector,
+  onSignOut,
+  userEmail
 }) => {
   return (
     <header className="sticky top-0 z-40 glass-panel border-b border-slate-900 shadow-xl backdrop-blur-xl bg-slate-950/90">
@@ -87,55 +93,57 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* TOP LEVEL 4-PORTAL SELECTOR (PACIENTE | MÉDICO | EQUIPE & AGENTES | ADMIN) */}
-        <div className="hidden md:flex items-center p-1 bg-slate-900/90 rounded-2xl border border-slate-800 text-xs">
-          <button
-            onClick={() => onToggleUserRole('patient')}
-            className={`px-3.5 py-1.5 rounded-xl font-extrabold transition-all flex items-center space-x-1.5 cursor-pointer ${
-              userRole === 'patient' 
-                ? 'bg-teal-500 text-slate-950 shadow-md shadow-teal-500/20' 
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <User className="w-4 h-4" />
-            <span>1. Portal Paciente</span>
-          </button>
+        {!hidePortalSelector && (
+          <div className="hidden md:flex items-center p-1 bg-slate-900/90 rounded-2xl border border-slate-800 text-xs">
+            <button
+              onClick={() => onToggleUserRole('patient')}
+              className={`px-3.5 py-1.5 rounded-xl font-extrabold transition-all flex items-center space-x-1.5 cursor-pointer ${
+                userRole === 'patient' 
+                  ? 'bg-teal-500 text-slate-950 shadow-md shadow-teal-500/20' 
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <User className="w-4 h-4" />
+              <span>1. Portal Paciente</span>
+            </button>
 
-          <button
-            onClick={() => onToggleUserRole('doctor')}
-            className={`px-3.5 py-1.5 rounded-xl font-extrabold transition-all flex items-center space-x-1.5 cursor-pointer ${
-              userRole === 'doctor' 
-                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20' 
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <Stethoscope className="w-4 h-4" />
-            <span>2. Portal Médico</span>
-          </button>
+            <button
+              onClick={() => onToggleUserRole('doctor')}
+              className={`px-3.5 py-1.5 rounded-xl font-extrabold transition-all flex items-center space-x-1.5 cursor-pointer ${
+                userRole === 'doctor' 
+                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20' 
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Stethoscope className="w-4 h-4" />
+              <span>2. Portal Médico</span>
+            </button>
 
-          <button
-            onClick={() => onToggleUserRole('healthcare_team')}
-            className={`px-3.5 py-1.5 rounded-xl font-extrabold transition-all flex items-center space-x-1.5 cursor-pointer ${
-              userRole === 'healthcare_team' 
-                ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20' 
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <Users className="w-4 h-4" />
-            <span>3. Agentes de Saúde & Equipe (ACS)</span>
-          </button>
+            <button
+              onClick={() => onToggleUserRole('healthcare_team')}
+              className={`px-3.5 py-1.5 rounded-xl font-extrabold transition-all flex items-center space-x-1.5 cursor-pointer ${
+                userRole === 'healthcare_team' 
+                  ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20' 
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              <span>3. Agentes de Saúde & Equipe (ACS)</span>
+            </button>
 
-          <button
-            onClick={() => onToggleUserRole('admin')}
-            className={`px-3.5 py-1.5 rounded-xl font-extrabold transition-all flex items-center space-x-1.5 cursor-pointer ${
-              userRole === 'admin' 
-                ? 'bg-rose-600 text-white shadow-md shadow-rose-500/20' 
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <ShieldCheck className="w-4 h-4" />
-            <span>4. Governança Admin</span>
-          </button>
-        </div>
+            <button
+              onClick={() => onToggleUserRole('admin')}
+              className={`px-3.5 py-1.5 rounded-xl font-extrabold transition-all flex items-center space-x-1.5 cursor-pointer ${
+                userRole === 'admin' 
+                  ? 'bg-rose-600 text-white shadow-md shadow-rose-500/20' 
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <ShieldCheck className="w-4 h-4" />
+              <span>4. Governança Admin</span>
+            </button>
+          </div>
+        )}
 
         {/* RIGHT SECURITY & SEG SAÚDE AUTH BUTTON */}
         <div className="flex items-center space-x-2">
@@ -151,14 +159,30 @@ export const Header: React.FC<HeaderProps> = ({
             <span>🌐 Landing Page</span>
           </button>
 
-          {onOpenSegSaudeAuth && (
-            <button
-              onClick={onOpenSegSaudeAuth}
-              className="py-2 px-3.5 rounded-xl bg-gradient-to-r from-cyan-500 via-teal-400 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-slate-950 font-black text-xs flex items-center space-x-1.5 shadow-lg shadow-cyan-500/20 transition-all cursor-pointer"
-            >
-              <Lock className="w-3.5 h-3.5" />
-              <span>SEG Saúde Auth</span>
-            </button>
+          {onSignOut ? (
+            <div className="flex items-center space-x-2">
+              {userEmail && (
+                <span className="text-[11px] text-slate-400 font-mono hidden lg:inline">
+                  {userEmail}
+                </span>
+              )}
+              <button
+                onClick={onSignOut}
+                className="py-2 px-3.5 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/40 text-rose-300 font-black text-xs cursor-pointer transition-all"
+              >
+                <span>Sair</span>
+              </button>
+            </div>
+          ) : (
+            onOpenSegSaudeAuth && (
+              <button
+                onClick={onOpenSegSaudeAuth}
+                className="py-2 px-3.5 rounded-xl bg-gradient-to-r from-cyan-500 via-teal-400 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-slate-950 font-black text-xs flex items-center space-x-1.5 shadow-lg shadow-cyan-500/20 transition-all cursor-pointer"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                <span>SEG Saúde Auth</span>
+              </button>
+            )
           )}
 
           {userRole === 'patient' && onOpenProfileRegistration && (

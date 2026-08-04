@@ -65,7 +65,7 @@ export const MedicalReports: React.FC<MedicalReportsProps> = ({
     }
 
     // 2. PERSISTÊNCIA OPCIONAL NO SUPABASE
-    if (isSupabaseConfigured() && encryptedPayload) {
+    if (isSupabaseConfigured() && supabase && encryptedPayload) {
       try {
         await supabase.from('clinical_timeline_events').insert({
           patient_id: profile.id,
