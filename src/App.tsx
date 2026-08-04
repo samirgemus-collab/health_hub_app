@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header';
 import { Dashboard } from './components/Dashboard';
 import { MedicalHistory } from './components/MedicalHistory';
@@ -26,6 +26,11 @@ import { PatientProfileRegistrationModal } from './components/PatientProfileRegi
 import { HealthMapModule } from './components/HealthMapModule';
 import { PreventiveAgendaModule } from './components/PreventiveAgendaModule';
 import { PreventivePlanModule } from './components/PreventivePlanModule';
+
+import { supabase, currentAppMode } from './lib/supabaseClient';
+import { roleToPortal } from './lib/appMode';
+import { Lock, ShieldAlert, LogOut } from 'lucide-react';
+
 
 import { 
   mockProfiles, 
@@ -75,6 +80,29 @@ export function App() {
   const [currentProfile, setCurrentProfile] = useState<UserProfile>(mockProfiles[0]);
   const [userRole, setUserRole] = useState<UserRole>('doctor');
   const [activeTab, setActiveTab] = useState<string>('doctor');
+
+  // Supabase auth state for 'real' mode
+  const [session, setSession] = useState<any>(null);
+  const [authLoading, setAuthLoading] = useState<boolean>(currentAppMode === 'real');
+
+  useEffect(() => {
+    if (currentAppMode !== 'real' || !supabase) {
+      setAuthLoading(false);
+      return;
+    }
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setAuthLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setAuthLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // COOKIE CONSENT STATE
   const [showCookieModal, setShowCookieModal] = useState(false);
@@ -384,8 +412,106 @@ export function App() {
     }
   };
 
+  // 1. MODO BLOCKED (FAIL-CLOSED)
+  if (currentAppMode === 'blocked') {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center text-white">
+        <Lock className="w-16 h-16 text-amber-400 mb-4 animate-pulse" />
+        <h1 className="text-2xl font-black text-amber-400 mb-2">Modo Bloqueado (Fail-Closed)</h1>
+        <p className="text-slate-300 max-w-lg mb-4 text-sm leading-relaxed">
+          A aplicação está bloqueada por razões de segurança. As variáveis de ambiente do Supabase (<code className="text-cyan-400 font-mono">VITE_SUPABASE_URL</code> e <code className="text-cyan-400 font-mono">VITE_SUPABASE_ANON_KEY</code>) não foram configuradas no ambiente local.
+        </p>
+        <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl max-w-md text-left text-xs font-mono text-slate-400 space-y-1 mb-6">
+          <p className="text-cyan-300 font-bold mb-2">Como resolver:</p>
+          <p>1. Crie o arquivo <code className="text-white">.env.local</code> na raiz do projeto;</p>
+          <p>2. Adicione <code className="text-white">VITE_SUPABASE_URL=sua_url</code> e <code className="text-white">VITE_SUPABASE_ANON_KEY=sua_chave</code>;</p>
+          <p>3. Ou adicione <code className="text-amber-400">VITE_DEMO_MODE=true</code> para ativar o Modo Demonstração.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. MODO REAL: AUTH RESOLUTION
+  let effectiveRole: UserRole = userRole;
+  let isRealAuthSession = false;
+
+  if (currentAppMode === 'real') {
+    if (authLoading) {
+      return (
+        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white">
+          <div className="w-10 h-10 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mb-4" />
+          <p className="text-sm font-bold text-slate-400">Carregando autenticação do SEG Saúde...</p>
+        </div>
+      );
+    }
+
+    if (!session) {
+      return (
+        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center text-white">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center shadow-xl mb-4">
+            <Lock className="w-8 h-8 text-slate-950" />
+          </div>
+          <h1 className="text-2xl font-black text-white mb-2">SEG Saúde — Autenticação Necessária</h1>
+          <p className="text-slate-400 max-w-md mb-6 text-sm">
+            Para acessar o sistema Health Hub em modo real, por favor realize a autenticação com suas credenciais registradas.
+          </p>
+          <button
+            onClick={() => setIsSegSaudeAuthOpen(true)}
+            className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 text-slate-950 font-black text-sm shadow-lg shadow-cyan-500/20 cursor-pointer hover:from-cyan-400 hover:to-indigo-500"
+          >
+            Abrir Modal de Login SEG Saúde
+          </button>
+
+          <SegSaudeAuthModal
+            isOpen={isSegSaudeAuthOpen}
+            onClose={() => setIsSegSaudeAuthOpen(false)}
+            onLoginSuccess={() => {
+              setIsSegSaudeAuthOpen(false);
+            }}
+          />
+        </div>
+      );
+    }
+
+    // Session is present in Real Mode
+    const sessionRole = session.user.app_metadata?.role;
+    const mappedPortal = roleToPortal(sessionRole);
+
+    if (!mappedPortal) {
+      return (
+        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center text-white">
+          <ShieldAlert className="w-16 h-16 text-rose-500 mb-4 animate-bounce" />
+          <h1 className="text-2xl font-black text-rose-400 mb-2">Acesso Bloqueado — Nenhum Papel Atribuído</h1>
+          <p className="text-slate-300 max-w-md mb-4 text-sm">
+            Sua conta (<code className="text-cyan-300">{session.user.email}</code>) está autenticada, porém não possui um papel de acesso válido configurado (<code className="text-cyan-400">app_metadata.role</code> ausente ou inválido).
+          </p>
+          <p className="text-slate-400 text-xs max-w-md mb-6">
+            Por favor, contate o administrador do sistema para atribuir o papel correspondente (patient, doctor, healthcare_team, admin).
+          </p>
+          <button
+            onClick={() => supabase?.auth.signOut()}
+            className="px-6 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm flex items-center justify-center space-x-2 mx-auto cursor-pointer"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Encerrar Sessão (Logout)</span>
+          </button>
+        </div>
+      );
+    }
+
+    effectiveRole = sessionRole as UserRole;
+    isRealAuthSession = true;
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-teal-500 selection:text-slate-950">
+
+      {/* DEMO MODE FIXED WARNING BANNER */}
+      {currentAppMode === 'demo' && (
+        <div className="bg-amber-500 text-slate-950 px-4 py-1.5 text-center font-black text-xs uppercase tracking-widest sticky top-0 z-50 shadow-md">
+          ⚠️ MODO DEMO — DADOS FICTÍCIOS EM MEMÓRIA
+        </div>
+      )}
 
       {/* Cookie Consent Modal */}
       <CookieConsentModal
@@ -403,13 +529,16 @@ export function App() {
         e2eeEnabled={securitySettings.e2eeEnabled}
         biometricActive={securitySettings.biometricAuthEnabled}
         onToggleBiometric={handleToggleBiometric}
-        userRole={userRole}
+        userRole={effectiveRole}
         onToggleUserRole={handleToggleRole}
         currentDoctor={mockDoctors[0]}
         currentTeamMember={mockTeamMembers[0]}
-        onOpenSegSaudeAuth={() => setIsSegSaudeAuthOpen(true)}
+        onOpenSegSaudeAuth={isRealAuthSession ? undefined : () => setIsSegSaudeAuthOpen(true)}
         onOpenEmergencySos={() => setIsEmergencySosOpen(true)}
         onOpenProfileRegistration={() => setIsProfileRegistrationOpen(true)}
+        hidePortalSelector={isRealAuthSession}
+        onSignOut={isRealAuthSession ? () => supabase?.auth.signOut() : undefined}
+        userEmail={isRealAuthSession ? session.user.email : undefined}
       />
 
       {/* Main Content Area */}

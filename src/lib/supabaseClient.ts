@@ -1,24 +1,26 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { resolveAppMode, AppMode } from './appMode';
 
-// Fallback credentials for local development simulation
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://healthhub-demo.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhlYWx0aGh1YiIsInJvbGUiOiJhbW9uIiwiaWF0IjoxNzAwMDAwMDAwLCJleHAiOjIwMDAwMDAwMDB9.demo_key';
+const rawUrl = import.meta.env.VITE_SUPABASE_URL;
+const rawAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const rawDemoFlag = import.meta.env.VITE_DEMO_MODE;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true
-  }
+export const currentAppMode: AppMode = resolveAppMode({
+  url: rawUrl,
+  anonKey: rawAnonKey,
+  demoFlag: rawDemoFlag,
 });
 
-/**
- * Checks whether Supabase environment variables are connected
- */
+export const supabase: SupabaseClient | null = currentAppMode === 'real'
+  ? createClient(rawUrl!, rawAnonKey!, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+    })
+  : null;
+
 export const isSupabaseConfigured = (): boolean => {
-  return Boolean(
-    import.meta.env.VITE_SUPABASE_URL && 
-    import.meta.env.VITE_SUPABASE_ANON_KEY &&
-    import.meta.env.VITE_SUPABASE_URL !== 'https://healthhub-demo.supabase.co'
-  );
+  return currentAppMode === 'real';
 };

@@ -1,27 +1,22 @@
 import React, { useState } from 'react';
 import { UserRole } from '../types/health';
+import { supabase, currentAppMode } from '../lib/supabaseClient';
 import { 
   ShieldCheck, 
   Lock, 
-  Key, 
   User, 
   Stethoscope, 
   Users, 
-  Smartphone, 
-  CheckCircle2, 
-  AlertTriangle, 
   Fingerprint, 
   KeyRound, 
   Mail, 
   Building2, 
   ArrowRight, 
   X, 
-  ShieldAlert, 
   Award, 
   Eye, 
   EyeOff,
-  Sparkles,
-  QrCode
+  AlertTriangle
 } from 'lucide-react';
 
 interface SegSaudeAuthModalProps {
@@ -38,45 +33,52 @@ export const SegSaudeAuthModal: React.FC<SegSaudeAuthModalProps> = ({
   const [authMode, setAuthMode] = useState<'password' | 'icp_brasil' | 'webauthn' | 'gov_br'>('password');
   const [selectedRole, setSelectedRole] = useState<UserRole>('doctor');
   
-  // FORM FIELDS
-  const [emailOrCpf, setEmailOrCpf] = useState('dr.roberto@segsaude.com.br');
-  const [password, setPassword] = useState('••••••••••••');
+  // FORM FIELDS (no hardcoded pre-filled values)
+  const [emailOrCpf, setEmailOrCpf] = useState('');
+  const [password, setPassword] = useState('');
   const [twoFactorCode, setTwoFactorCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [cloudCertProvider, setCloudCertProvider] = useState<'vidaas' | 'birdid' | 'soluti'>('vidaas');
 
   if (!isOpen) return null;
 
-  const handleSubmitAuth = (e: React.FormEvent) => {
+  const handleSubmitAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
     setErrorMessage('');
 
-    setTimeout(() => {
+    if (currentAppMode === 'real') {
+      if (!supabase) {
+        setErrorMessage('Cliente Supabase indisponível no modo real.');
+        return;
+      }
+      setIsSubmitting(true);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: emailOrCpf,
+        password: password,
+      });
       setIsSubmitting(false);
-      onLoginSuccess(selectedRole, emailOrCpf);
-      onClose();
-    }, 1200);
-  };
 
-  const handleSimulateIcpLogin = (providerName: string) => {
-    setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      onLoginSuccess('doctor', 'dr.roberto.crm148920@segsaude.com.br');
-      onClose();
-    }, 1500);
-  };
+      if (error) {
+        setErrorMessage(error.message || 'Erro ao realizar login.');
+        return;
+      }
 
-  const handleSimulateWebAuthn = () => {
-    setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      onLoginSuccess('patient', 'maria.silva@segsaude.com.br');
-      onClose();
-    }, 1200);
+      if (data.session) {
+        const userRole = (data.session.user.app_metadata?.role as UserRole) || selectedRole;
+        onLoginSuccess(userRole, data.session.user.email || emailOrCpf);
+        onClose();
+      }
+    } else if (currentAppMode === 'demo') {
+      setIsSubmitting(true);
+      setTimeout(() => {
+        setIsSubmitting(false);
+        onLoginSuccess(selectedRole, emailOrCpf || 'demo@segsaude.com.br');
+        onClose();
+      }, 500);
+    } else {
+      setErrorMessage('Aplicação em modo bloqueado. Configure as variáveis de ambiente no arquivo .env.local.');
+    }
   };
 
   return (
@@ -98,14 +100,11 @@ export const SegSaudeAuthModal: React.FC<SegSaudeAuthModalProps> = ({
               <ShieldCheck className="w-7 h-7 text-slate-950" />
             </div>
             <div>
-              <div className="flex items-center space-x-2">
-                <span className="font-black text-xl text-white tracking-tight">SEG SAÚDE</span>
-                <span className="text-[10px] px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 font-extrabold border border-cyan-500/30 uppercase">
-                  Zero-Trust Auth
-                </span>
-              </div>
-              <p className="text-xs text-slate-300 font-medium">
-                Sistema Eletrônico de Governança, Autenticação & Segurança em Saúde
+              <h3 className="text-xl font-black text-white flex items-center gap-2">
+                SEG Saúde Auth
+              </h3>
+              <p className="text-xs text-slate-400">
+                Autenticação de Segurança E2EE & RBAC Corporativo
               </p>
             </div>
           </div>
@@ -123,7 +122,7 @@ export const SegSaudeAuthModal: React.FC<SegSaudeAuthModalProps> = ({
               }`}
             >
               <KeyRound className="w-4 h-4" />
-              <span>Senha + 2FA</span>
+              <span>Senha</span>
             </button>
 
             <button
@@ -160,89 +159,34 @@ export const SegSaudeAuthModal: React.FC<SegSaudeAuthModalProps> = ({
             </button>
           </div>
 
-          {/* ROLE SELECTOR (ROLE RBAC) */}
-          <div className="space-y-1.5 text-xs">
-            <label className="text-slate-300 font-extrabold uppercase text-[10px] tracking-wider block">
-              Selecione seu Perfil de Acesso SEG Saúde:
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-              <button
-                type="button"
-                onClick={() => setSelectedRole('patient')}
-                className={`p-2.5 rounded-xl border transition-all text-left flex items-center space-x-2 cursor-pointer ${
-                  selectedRole === 'patient' 
-                    ? 'bg-cyan-500/20 border-cyan-500 text-cyan-200 font-bold' 
-                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
-                }`}
-              >
-                <User className="w-4 h-4 text-cyan-400 shrink-0" />
-                <span>Paciente</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSelectedRole('doctor')}
-                className={`p-2.5 rounded-xl border transition-all text-left flex items-center space-x-2 cursor-pointer ${
-                  selectedRole === 'doctor' 
-                    ? 'bg-indigo-600/30 border-indigo-500 text-indigo-200 font-bold' 
-                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
-                }`}
-              >
-                <Stethoscope className="w-4 h-4 text-indigo-400 shrink-0" />
-                <span>Médico</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSelectedRole('healthcare_team')}
-                className={`p-2.5 rounded-xl border transition-all text-left flex items-center space-x-2 cursor-pointer ${
-                  selectedRole === 'healthcare_team' 
-                    ? 'bg-teal-500/20 border-teal-500 text-teal-200 font-bold' 
-                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
-                }`}
-              >
-                <Users className="w-4 h-4 text-teal-400 shrink-0" />
-                <span>Equipe</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSelectedRole('admin')}
-                className={`p-2.5 rounded-xl border transition-all text-left flex items-center space-x-2 cursor-pointer ${
-                  selectedRole === 'admin' 
-                    ? 'bg-rose-500/20 border-rose-500 text-rose-200 font-bold' 
-                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
-                }`}
-              >
-                <ShieldCheck className="w-4 h-4 text-rose-400 shrink-0" />
-                <span>Admin CISO</span>
-              </button>
+          {/* ERROR DISPLAY */}
+          {errorMessage && (
+            <div className="p-3 bg-rose-950/40 border border-rose-500/50 rounded-xl text-rose-300 text-xs flex items-center space-x-2">
+              <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+              <span>{errorMessage}</span>
             </div>
-          </div>
+          )}
 
-          {/* MODE 1: PASSWORD + 2FA FORM */}
+          {/* MODE 1: PASSWORD FORM */}
           {authMode === 'password' && (
             <form onSubmit={handleSubmitAuth} className="space-y-4 text-xs">
               <div>
-                <label className="block text-slate-300 font-bold mb-1">E-mail Corporativo ou CPF</label>
+                <label className="block text-slate-300 font-bold mb-1">E-mail Corporativo</label>
                 <div className="relative">
                   <input
-                    type="text"
+                    type="email"
                     required
                     value={emailOrCpf}
                     onChange={(e) => setEmailOrCpf(e.target.value)}
                     className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-3 py-2.5 text-white focus:outline-none focus:border-cyan-500"
-                    placeholder="ex: dr.roberto@segsaude.com.br"
+                    placeholder="usuario@exemplo.com"
                   />
                   <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
                 </div>
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-slate-300 font-bold">Senha de Acesso SEG Saúde</label>
-                  <button type="button" className="text-cyan-400 hover:underline text-[11px]">Esqueceu a senha?</button>
-                </div>
+                <label className="text-slate-300 font-bold block mb-1">Senha de Acesso</label>
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
@@ -250,6 +194,7 @@ export const SegSaudeAuthModal: React.FC<SegSaudeAuthModalProps> = ({
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-10 py-2.5 text-white focus:outline-none focus:border-cyan-500 font-mono"
+                    placeholder="Digite sua senha"
                   />
                   <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
                   <button
@@ -263,11 +208,11 @@ export const SegSaudeAuthModal: React.FC<SegSaudeAuthModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-slate-300 font-bold mb-1">Código de Autenticação 2FA (TOTP / SMS)</label>
+                <label className="block text-slate-300 font-bold mb-1">Código 2FA (Opcional)</label>
                 <input
                   type="text"
                   maxLength={6}
-                  placeholder="ex: 894120"
+                  placeholder="ex: 123456"
                   value={twoFactorCode}
                   onChange={(e) => setTwoFactorCode(e.target.value)}
                   className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-cyan-400 font-mono tracking-widest text-center text-sm focus:outline-none focus:border-cyan-500"
@@ -279,99 +224,49 @@ export const SegSaudeAuthModal: React.FC<SegSaudeAuthModalProps> = ({
                 disabled={isSubmitting}
                 className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-cyan-500 via-teal-400 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-slate-950 font-black text-xs flex items-center justify-center space-x-2 shadow-lg shadow-cyan-500/20 cursor-pointer disabled:opacity-50"
               >
-                <span>{isSubmitting ? 'Autenticando no SEG Saúde...' : 'Entrar no Sistema SEG Saúde'}</span>
+                <span>{isSubmitting ? 'Autenticando...' : 'Entrar no Sistema'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
           )}
 
-          {/* MODE 2: ICP-BRASIL CERTIFICATE LOGIN */}
+          {/* MODE 2: ICP-BRASIL CERTIFICATE LOGIN (DISABLED / EM HOMOLOGAÇÃO) */}
           {authMode === 'icp_brasil' && (
             <div className="space-y-4 text-xs">
-              <div className="p-4 bg-indigo-950/30 rounded-2xl border border-indigo-500/30 space-y-2">
-                <h4 className="font-extrabold text-indigo-300 text-sm flex items-center gap-1.5">
-                  <Award className="w-4 h-4 text-indigo-400" />
-                  Autenticação com Certificado Digital ICP-Brasil
-                </h4>
-                <p className="text-slate-300 leading-relaxed">
-                  Conecte seu Token A3 USB ou escolha seu Provedor de Certificado em Nuvem (VIDaaS / BirdID / VaultID) para login instantâneo com assinatura digital.
+              <div className="p-4 bg-indigo-950/30 rounded-2xl border border-indigo-500/30 space-y-2 text-center">
+                <Award className="w-8 h-8 text-indigo-400 mx-auto" />
+                <h4 className="font-extrabold text-indigo-300 text-sm">Autenticação ICP-Brasil</h4>
+                <p className="text-slate-400 text-xs">
+                  Integração com Certificado Digital A3/Nuvem em homologação de segurança. Utilize e-mail e senha para login real.
                 </p>
               </div>
-
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  onClick={() => handleSimulateIcpLogin('VIDaaS')}
-                  className="p-3 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl text-center space-y-1 cursor-pointer"
-                >
-                  <span className="font-bold text-white block">VIDaaS (Valid)</span>
-                  <span className="text-[10px] text-cyan-400 font-mono">Cloud Push</span>
-                </button>
-
-                <button
-                  onClick={() => handleSimulateIcpLogin('BirdID')}
-                  className="p-3 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl text-center space-y-1 cursor-pointer"
-                >
-                  <span className="font-bold text-white block">BirdID (Certisign)</span>
-                  <span className="text-[10px] text-cyan-400 font-mono">Cloud Push</span>
-                </button>
-
-                <button
-                  onClick={() => handleSimulateIcpLogin('Token A3')}
-                  className="p-3 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl text-center space-y-1 cursor-pointer"
-                >
-                  <span className="font-bold text-white block">Token A3 USB</span>
-                  <span className="text-[10px] text-indigo-400 font-mono">Lacuna PKI</span>
-                </button>
-              </div>
             </div>
           )}
 
-          {/* MODE 3: WEBAUTHN / BIOMETRIA */}
+          {/* MODE 3: WEBAUTHN / BIOMETRIA (DISABLED / EM HOMOLOGAÇÃO) */}
           {authMode === 'webauthn' && (
-            <div className="p-6 bg-slate-900 rounded-2xl border border-slate-800 text-center space-y-4 text-xs">
-              <div className="w-16 h-16 bg-teal-500/10 border border-teal-500/30 rounded-full flex items-center justify-center mx-auto text-teal-400">
-                <Fingerprint className="w-10 h-10 animate-pulse" />
-              </div>
-              <div>
-                <h4 className="font-extrabold text-white text-sm">Autenticação Biométrica WebAuthn / TouchID</h4>
-                <p className="text-slate-400 text-xs mt-1">Toque no leitor biométrico do seu smartphone ou notebook para entrar sem senha.</p>
-              </div>
-
-              <button
-                onClick={handleSimulateWebAuthn}
-                className="py-3 px-6 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-black shadow-lg shadow-teal-500/20 cursor-pointer"
-              >
-                <span>Usar Biometria do Dispositivo</span>
-              </button>
+            <div className="p-6 bg-slate-900 rounded-2xl border border-slate-800 text-center space-y-3 text-xs">
+              <Fingerprint className="w-10 h-10 text-teal-400 mx-auto opacity-50" />
+              <h4 className="font-extrabold text-white text-sm">Autenticação Biométrica WebAuthn</h4>
+              <p className="text-slate-400 text-xs">Em homologação de segurança no ecossistema SEG Saúde.</p>
             </div>
           )}
 
-          {/* MODE 4: GOV.BR SSO */}
+          {/* MODE 4: GOV.BR SSO (DISABLED / EM HOMOLOGAÇÃO) */}
           {authMode === 'gov_br' && (
-            <div className="p-6 bg-emerald-950/20 rounded-2xl border border-emerald-500/30 text-center space-y-4 text-xs">
-              <div className="w-14 h-14 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex items-center justify-center mx-auto text-emerald-400 font-black text-xl">
-                gov.br
-              </div>
-              <div>
-                <h4 className="font-extrabold text-white text-sm">Single Sign-On (SSO) do Governo Federal</h4>
-                <p className="text-slate-300 text-xs mt-1">Entrar com sua conta Ouro ou Prata do Gov.br para verificação unificada de identidade de saúde.</p>
-              </div>
-
-              <button
-                onClick={() => handleSimulateIcpLogin('Gov.br')}
-                className="py-3 px-6 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black shadow-lg shadow-emerald-500/20 cursor-pointer"
-              >
-                <span>Entrar com Gov.br</span>
-              </button>
+            <div className="p-6 bg-emerald-950/20 rounded-2xl border border-emerald-500/30 text-center space-y-3 text-xs">
+              <Building2 className="w-10 h-10 text-emerald-400 mx-auto opacity-50" />
+              <h4 className="font-extrabold text-white text-sm">Gov.br SSO</h4>
+              <p className="text-slate-400 text-xs">Em homologação de segurança no ecossistema SEG Saúde.</p>
             </div>
           )}
 
           {/* FOOTER SECURITY COMPLIANCE BADGE */}
           <div className="pt-4 border-t border-slate-900 flex items-center justify-between text-[10px] text-slate-500 font-mono">
             <span className="flex items-center gap-1 text-emerald-400">
-              <Lock className="w-3 h-3" /> E2EE AES-256-GCM Ativo
+              <Lock className="w-3 h-3" /> Auth RBAC Fail-Closed
             </span>
-            <span>LGPD Art. 18 • ANPD • CFM 2.299/2021</span>
+            <span>LGPD Art. 18 • ANPD</span>
           </div>
 
         </div>
