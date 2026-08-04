@@ -1,27 +1,19 @@
-# Constituição — v1.1.0
+# Constituição — health_hub_app
 
-<!--
-  Princípios inegociáveis do projeto. Não são estilo: são restrições.
-  P-xxx = princípio (código de rastreio, como US/AC/T).
-  Níveis: [DEVE] obrigatório · [RECOMENDADO] forte · [PODE] permitido/explícito.
-  Todo [DEVE] precisa de verificação executável — senão o audit acusa
-  "princípio sem verificação" (PRINCIPIO_SEM_VERIFICACAO). Formatos:
-    - verificação(gate): satisfeita pelo próprio audit (só p/ princípios "meta")
-    - verificação(teste): @principle:P-xxx
-    - verificação(proibido): `regex` em `glob`
-    - verificação(obrigatório): `regex` em `glob`
--->
+> Método spec-driven. MIGRADO do onpspec v1.1.0 em H-000 (2026-08-04).
+> Gate ATIVO = GitHub Actions CI (.github/workflows/ci.yml). O motor onp-spec NÃO é o gate — arquivado.
 
-## P-001 [DEVE] Todo requisito tem prova executável
+## Princípios
 
-Nenhuma feature é declarada pronta sem o audit em modo CI sair limpo (exit 0).
-Este princípio é verificado pelo próprio mecanismo do audit (AC_SEM_TESTE,
-AC_SEM_PROVA, TASK_CONCLUIDA_SEM_PROVA) — não precisa de teste extra seu.
+### P-001 [DEVE] Todo requisito tem prova executável
+Nenhuma feature é declarada pronta sem o CI do GitHub Actions verde no PR.
+- verificação(gate): `.github/workflows/ci.yml` verde.
+- Baseline H-000: o gate é `npm ci && npm run build && npm run lint` — compilação + Oxlint, SEM teste de comportamento (não há suíte ainda). Registro consciente: hoje prova que compila e linta, não que funciona. P-001 ganha dentes de comportamento na H-002 (Vitest).
 
-- verificação(gate): intrínseca ao audit
-
-## P-002 [RECOMENDADO] Segredos nunca em código
-
+### P-002 [RECOMENDADO] Segredos nunca em código
 Chaves e senhas vêm de variáveis de ambiente, nunca hard-coded.
+- verificação(proibido): regex `(api[_-]?key|senha|password)\s*[:=]\s*['"][^'"]{8,}` em `src/**/*.{ts,tsx,js,jsx}` (glob corrigido — o original `src/**/*.js` não casava nada num projeto TS/React).
+- NÃO forçado no CI ainda: ativá-lo agora reprovaria nos demo creds conhecidos (`src/lib/supabaseClient.ts`). Remover os creds + fixar essa checagem no CI é a H-003.
 
-- verificação(proibido): `(api[_-]?key|senha|password)\s*[:=]\s*['"][^'"]{8,}` em `src/**/*.js`
+## Fluxo
+spec → tarefas → implementação → CI verde (prova) → revisão adversarial (revisor ≠ autor) → merge só com SHA de merge confirmado.
